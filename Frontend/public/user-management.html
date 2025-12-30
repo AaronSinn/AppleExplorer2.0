@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Systems Permission - Agriculture and Agri-Food Canada</title>
+  <link rel="stylesheet" href="user-management-styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="header-left">
+        <h1>AGRICULTURE AND AGRI-FOOD CANADA</h1>
+      </div>
+      <div class="header-right">
+        <div class="admin-section">
+          <span class="user-name-role"></span>
+          <div class="user-profile">
+            <div class="profile-icon">S</div>
+          </div>
+        </div>
+        <nav>
+          <ul>
+            <li><a href="homepage.html">HOME</a></li>
+            <li><a href="dashboard.html">DASHBOARD</a></li>
+            <li><a href="search.html">SEARCH</a></li>
+            <li><a href="user-management.html" class="active">USER</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="page-title">
+      <h2>MANAGE SYSTEMS PERMISSION</h2>
+    </div>
+
+    <!-- Current User Info -->
+    <section class="current-user-info">
+      <div class="user-info-container">
+        <div class="current-user-details">
+          <span class="user-label">Current User:</span>
+          <span id="currentUserName">Senior Administrator</span>
+          <span class="user-role" id="currentUserRole">(Senior Member)</span>
+        </div>
+        <div class="permission-notice">
+          <span id="permissionNotice">You have full administrative privileges</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- User Management Table -->
+    <section class="user-management-section">
+      <div class="table-container">
+        <!-- Search Controls -->
+        <div class="search-controls">
+          <div class="search-group">
+            <div class="search-field">
+              <span class="search-icon">☰</span>
+              <input type="text" id="nameSearch" placeholder="Search By Name">
+              <span class="search-btn">🔍</span>
+            </div>
+          </div>
+          <div class="search-group">
+            <div class="search-field">
+              <span class="search-icon">☰</span>
+              <input type="text" id="roleSearch" placeholder="Search By Role">
+              <span class="search-btn">🔍</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Table -->
+        <div class="user-table-wrapper">
+          <table class="user-table" id="userTable">
+            <thead>
+              <tr>
+                <th class="name-column">Employee Name</th>
+                <th class="role-column">Employee Role</th>
+                <th class="permissions-header" colspan="4">USER PERMISSIONS</th>
+                <th class="delete-column">DELETE USER</th>
+              </tr>
+              <tr class="sub-header">
+                <th></th>
+                <th></th>
+                <th class="permission-col">Create☑</th>
+                <th class="permission-col">Upload☑</th>
+                <th class="permission-col">Update☑</th>
+                <th class="permission-col">Admin☑</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="userTableBody">
+              <!-- Users will be populated here -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button id="cancelBtn" class="cancel-btn">CANCEL</button>
+          <button id="updateBtn" class="update-btn">UPDATE</button>
+          <button id="addUserBtn" class="add-user-btn">+ ADD NEW USER</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-left">
+        <span class="contact-icon">✉</span>
+        <span>CONTACT US</span>
+      </div>
+      <div class="footer-center">
+        <span>© AGRICULTURAL AND AGRI-FOOD CANADA</span>
+      </div>
+      <div class="footer-right">
+        <span>TERMS AND CONDITIONS</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Add User Modal -->
+  <div id="addUserModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add New User</h3>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="addUserForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newUserName">Employee Name *</label>
+              <input type="text" id="newUserName" required>
+            </div>
+            <div class="form-group">
+              <label for="newUserRole">Employee Role *</label>
+              <select id="newUserRole" required>
+                <option value="">Select Role</option>
+                <option value="Junior Member">Junior Member</option>
+                <option value="Regular Member">Regular Member</option>
+                <option value="Senior Member">Senior Member</option>
+                <option value="Administrator">Administrator</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="newUserEmail">Email Address *</label>
+              <input type="email" id="newUserEmail" required>
+            </div>
+            <div class="form-group">
+              <label for="newUserDepartment">Department</label>
+              <input type="text" id="newUserDepartment">
+            </div>
+          </div>
+          <div class="permissions-section">
+            <h4>Initial Permissions</h4>
+            <div class="permission-checkboxes">
+              <label class="checkbox-label">
+                <input type="checkbox" id="newUserCreate">
+                <span class="checkmark"></span>
+                Create Permission
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="newUserUpload">
+                <span class="checkmark"></span>
+                Upload Permission
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="newUserUpdate">
+                <span class="checkmark"></span>
+                Update Permission
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="newUserAdmin">
+                <span class="checkmark"></span>
+                Admin Permission
+              </label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button id="saveNewUser" class="save-btn">Add User</button>
+        <button id="cancelNewUser" class="cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content delete-modal">
+      <div class="modal-header">
+        <h3>Confirm User Deletion</h3>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="warning-icon">⚠️</div>
+        <p>Are you sure you want to delete this user?</p>
+        <div class="user-details">
+          <strong id="deleteUserName"></strong><br>
+          <span id="deleteUserRole"></span>
+        </div>
+        <p class="warning-text">This action cannot be undone. All user data and permissions will be permanently removed.</p>
+      </div>
+      <div class="modal-footer">
+        <button id="confirmDelete" class="delete-btn">DELETE USER</button>
+        <button id="cancelDelete" class="cancel-btn">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Container -->
+  <div id="notificationContainer"></div>
+
+  <!-- Authentication utility -->
+  <script src="auth.js"></script>
+  <script src="auth-guard.js"></script>
+  <script src="user-management-script.js"></script>
+</body>
+</html>

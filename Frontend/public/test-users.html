@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Management Test</title>
+</head>
+<body>
+    <h1>User Management Test</h1>
+    <div id="test-result"></div>
+    <table>
+        <tbody id="userTableBody">
+            <tr><td>Test Row</td></tr>
+        </tbody>
+    </table>
+
+    <script>
+        console.log('🚀 Test script loading...');
+        
+        async function testUserAPI() {
+            console.log('🔄 Testing user API...');
+            try {
+                const response = await fetch('/users');
+                console.log('📡 Response status:', response.status);
+                const users = await response.json();
+                console.log('👥 Users received:', users);
+                
+                document.getElementById('test-result').innerHTML = `
+                    <h2>API Test Results:</h2>
+                    <p>Status: ${response.status}</p>
+                    <p>Users count: ${users.length}</p>
+                    <pre>${JSON.stringify(users, null, 2)}</pre>
+                `;
+                
+                // Test table manipulation
+                const tbody = document.getElementById('userTableBody');
+                console.log('📋 Table body found:', tbody);
+                tbody.innerHTML = '<tr><td>Dynamic content loaded!</td></tr>';
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                document.getElementById('test-result').innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('📄 DOM loaded, running test...');
+            testUserAPI();
+        });
+    </script>
+</body>
+</html>

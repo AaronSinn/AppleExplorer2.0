@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Import Data - Agriculture and Agri-Food Canada</title>
+  <link rel="stylesheet" href="import-data-styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="header-left">
+        <h1>AGRICULTURE AND AGRI-FOOD CANADA</h1>
+      </div>
+      <div class="header-right">
+        <div class="admin-section">
+          ADMINISTRATION/USER LOGIN
+          <div class="user-profile">
+            <div class="profile-icon">P</div>
+          </div>
+        </div>
+        <nav>
+          <ul>
+            <li><a href="homepage.html">HOME</a></li>
+            <li><a href="dashboard.html">DASHBOARD</a></li>
+            <li><a href="search.html">SEARCH</a></li>
+            <li><a href="user-management.html">USER</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="page-title">
+      <h2>IMPORT DATA</h2>
+    </div>
+
+    <!-- Import Section -->
+    <section class="import-section">
+      <div class="import-container">
+        
+        <!-- File Upload Area -->
+        <div class="upload-area">
+          <h3 class="section-title">IMPORT</h3>
+          
+          <!-- File Input -->
+          <div class="file-input-container">
+            <input type="file" id="fileInput" accept=".csv,.txt" style="display: none;">
+            <button id="chooseFileBtn" class="choose-file-btn">Choose File</button>
+            <span id="selectedFileName" class="selected-file-name">No file selected</span>
+          </div>
+          
+          <!-- File Type Notice -->
+          <div class="file-notice">
+            <p>Please import files with only the .csv or .txt extension. Other file types are not supported</p>
+          </div>
+
+          <!-- File Information Display -->
+          <div id="fileInfo" class="file-info" style="display: none;">
+            <div class="file-details">
+              <div class="file-detail-item">
+                <span class="detail-label">File Name:</span>
+                <span id="fileNameDisplay"></span>
+              </div>
+              <div class="file-detail-item">
+                <span class="detail-label">File Size:</span>
+                <span id="fileSizeDisplay"></span>
+              </div>
+              <div class="file-detail-item">
+                <span class="detail-label">File Type:</span>
+                <span id="fileTypeDisplay"></span>
+              </div>
+              <div class="file-detail-item">
+                <span class="detail-label">Last Modified:</span>
+                <span id="fileModifiedDisplay"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Import Results Display -->
+        <div class="results-section">
+          <h3 class="section-title">DISPLAY IMPORT RESULTS</h3>
+          
+          <div class="results-container" id="resultsContainer">
+            <div class="results-placeholder" id="resultsPlaceholder">
+              <div class="placeholder-icon">📄</div>
+              <p>Import results will be displayed here</p>
+              <p class="placeholder-subtext">Select a CSV or TXT file and click IMPORT to see the data</p>
+            </div>
+            
+            <!-- Results Content (Hidden initially) -->
+            <div id="resultsContent" class="results-content" style="display: none;">
+              <!-- File Summary -->
+              <div class="results-summary" id="resultsSummary">
+                <div class="summary-stats">
+                  <div class="stat-item">
+                    <span class="stat-number" id="totalRows">0</span>
+                    <span class="stat-label">Total Rows</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-number" id="totalColumns">0</span>
+                    <span class="stat-label">Columns</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-number" id="validRows">0</span>
+                    <span class="stat-label">Valid Rows</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-number" id="errorRows">0</span>
+                    <span class="stat-label">Errors</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Data Preview Table -->
+              <div class="data-preview" id="dataPreview">
+                <h4>Data Preview (First 10 rows)</h4>
+                <div class="table-wrapper">
+                  <table id="previewTable" class="preview-table">
+                    <thead id="previewTableHead">
+                      <!-- Headers will be populated here -->
+                    </thead>
+                    <tbody id="previewTableBody">
+                      <!-- Data rows will be populated here -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Error Log -->
+              <div id="errorLog" class="error-log" style="display: none;">
+                <h4>Import Errors</h4>
+                <div class="error-list" id="errorList">
+                  <!-- Error messages will be populated here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Import Actions -->
+        <div class="import-actions">
+          <div class="action-buttons">
+            <button id="clearBtn" class="clear-btn" disabled>CLEAR</button>
+            <button id="importBtn" class="import-btn" disabled>IMPORT</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-left">
+        <span class="contact-icon">✉</span>
+        <span>CONTACT US</span>
+      </div>
+      <div class="footer-center">
+        <span>© AGRICULTURAL AND AGRI-FOOD CANADA</span>
+      </div>
+      <div class="footer-right">
+        <span>TERMS AND CONDITIONS</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Processing Modal -->
+  <div id="processingModal" class="modal">
+    <div class="modal-content processing-modal">
+      <div class="modal-body">
+        <div class="processing-animation">
+          <div class="spinner"></div>
+          <h3>Processing File...</h3>
+          <p id="processingStatus">Reading file data</p>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Container -->
+  <div id="notificationContainer"></div>
+
+  <script src="import-data-script.js"></script>
+</body>
+</html>

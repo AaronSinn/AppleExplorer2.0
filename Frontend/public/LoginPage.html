@@ -1,0 +1,153 @@
+<!DOCTYPE HTML>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <title>Login - Apple Explorer</title>
+        <link rel="stylesheet" href="logstyles.css">
+    </head>
+
+    <body>
+        <nav class="navbar fixed-top">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Agriculture and Agri-Food Canada</a>
+                <div>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="homepage.html" style="color: #F5F5F5;">Return to Home Page</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid px-4">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-4">
+                    <div class="d-flex justify-content-center align-items-center vh-100">
+                        <div class="card p-4 w-100">
+                            <div class="card-body">
+                                <h5 class="card-title text-center mb-4">Login to Apple Explorer</h5>
+
+                                <!-- Success/Error Messages -->
+                                <div id="message-container" style="display: none;">
+                                    <div id="message-alert" class="alert" role="alert"></div>
+                                </div>
+
+                                <form id="login-form">
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label"><strong>EMAIL ADDRESS</strong></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-envelope"></i></span>
+                                            <input id="email" name="email" type="email" class="form-control" placeholder="Enter your email" required/>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="password" class="form-label"><strong>PASSWORD</strong></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-lock"></i></span>
+                                            <input id="password" name="password" type="password" class="form-control" placeholder="Enter your password" required/>
+                                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                                <i class="fa fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-center mb-3">
+                                        <button type="submit" class="btn btn-primary w-100" id="login-button">
+                                            <span id="login-text">LOGIN</span>
+                                            <span id="login-loading" style="display: none;">
+                                                <i class="fa fa-spinner fa-spin"></i> Logging in...
+                                            </span>
+                                        </button>
+                                    </div>
+
+                                    <div class="text-center mb-3">
+                                        <a href="ForgotPassword.html" class="text-decoration-none">Forgot Password?</a>
+                                    </div>
+
+                                    <div class="text-center mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <hr class="flex-grow-1">
+                                            <span class="px-3 text-muted">OR</span>
+                                            <hr class="flex-grow-1">
+                                        </div>
+                                    </div>
+
+                                    <div class="text-center mb-3">
+                                        <a class="btn btn-outline-danger w-100" href="/auth/google">
+                                            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" style="width: 20px; height: 20px; margin-right: 10px;">
+                                            Continue With Google
+                                        </a>
+                                    </div>
+
+                                    <div class="text-center">
+                                        <p>Don't have an account? <a href="signup.html" class="text-decoration-none">Sign up here</a></p>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Verification Modal (for users who haven't verified) -->
+        <div class="modal fade" id="verificationModal" tabindex="-1" aria-labelledby="verificationModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="verificationModalLabel">Email Verification Required</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p>Please verify your email address before logging in. We've sent a verification code to your email.</p>
+                        
+                        <div id="verification-message-container" style="display: none;">
+                            <div id="verification-message-alert" class="alert" role="alert"></div>
+                        </div>
+
+                        <form id="verification-form">
+                            <div class="mb-3">
+                                <label for="verificationCode" class="form-label"><strong>VERIFICATION CODE</strong></label>
+                                <input id="verificationCode" name="verificationCode" type="text" class="form-control text-center" placeholder="Enter 6-digit code" maxlength="6" required>
+                            </div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary" id="verify-button">
+                                    <span id="verify-text">VERIFY EMAIL</span>
+                                    <span id="verify-loading" style="display: none;">
+                                        <i class="fa fa-spinner fa-spin"></i> Verifying...
+                                    </span>
+                                </button>
+                            </div>
+                            
+                            <div class="text-center mt-3">
+                                <p>Didn't receive the code? <button type="button" id="resend-code" class="btn btn-link p-0">Resend Code</button></p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="container-fluid">
+            <div class="row">
+                <div class="col-6 col-sm-3">
+                    <span><i class="fa fa-envelope"></i><strong> CONTACT US</strong></span>
+                </div>
+                <div class="col">
+                    <div class="text-center"><strong>© AGRICULTURAL AND AGRI-FOOD CANADA</strong></div>
+                </div>
+                <div class="col">
+                    <div class="text-end"><strong>TERMS AND CONDITIONS</strong></div>
+                </div>
+            </div>
+        </footer>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="login.js"></script>
+    </body>
+</html>

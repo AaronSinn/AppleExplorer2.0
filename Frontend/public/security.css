@@ -1,0 +1,41 @@
+@media screen and (max-width: 600px) {
+    .column {
+      width: 100%;
+    }
+}  
+
+body {
+    background-color: #FFFFFF;
+}
+
+nav {
+    background-color: #564787;
+}
+
+nav a {
+    color: #F5F5F5;
+    text-decoration: none;
+}
+
+nav a:hover{
+    color: #2191FB;
+}
+
+.card {
+    border: 5px solid black;
+    border-radius: 20px;
+}
+
+.card-body {
+    text-align: center;
+}
+
+footer {
+    color: #F5F5F5;
+    background-color: #564787;
+    width: 100%;
+}
+
+#security-password, #security-username {
+    font-weight: bold;
+}

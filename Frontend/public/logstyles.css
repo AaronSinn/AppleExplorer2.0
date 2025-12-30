@@ -1,0 +1,89 @@
+@media screen and (max-width: 600px) {
+    .column {
+      width: 100%;
+    }
+}  
+
+body {
+    background-color: #FFFFFF;
+}
+
+nav {
+    background-color: #564787;
+}
+
+nav a {
+    color: #F5F5F5;
+    text-decoration: none;
+}
+
+nav a:hover{
+    color: #2191FB;
+}
+
+.card {
+    border: 5px solid black;
+    border-radius: 20px;
+}
+
+.google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* center text and icon */
+    background: white;
+    color: #444;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px 5px; 
+    font-size: 16px;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: background 0.2s ease;
+    width: 230px; /* Match width to your LOGIN + RESET PASSWORD combo */
+    margin: 10px auto; /* Center the button */
+}
+
+.google-btn:hover {
+    background: #f0f0f0;
+}
+
+.google-btn img {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+}
+
+.card-body {
+    text-align: center;
+}
+
+#login-button {
+    background-color: #372549;
+}
+
+a.hidden-link {
+color: #FFFFFF;
+text-decoration: none;
+}
+
+a.hidden-link:visited {
+color: #FFFFFF;
+text-decoration: none;
+}
+
+a.hidden-link:hover {
+color: #FFFFFF;
+text-decoration: none;
+}
+
+a.hidden-link:active {
+color: #FFFFFF;
+text-decoration: none;
+}
+
+footer {
+    color: #F5F5F5;
+    background-color: #564787;
+    width: 100%;
+}

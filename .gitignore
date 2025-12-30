@@ -1,0 +1,25 @@
+# Node.js dependencies
+node_modules/
+.env
+.env2
+
+# Logs
+logs/
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Other temporary files
+.csv
+.vscode
+
+#error files
+import-errors.csv
+import-errors.json
+duplicate-entries.csv
+duplicate-entries.json
+
+#output files
+image-mapping.json

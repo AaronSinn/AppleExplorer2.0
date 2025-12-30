@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agricultural and Agri-Food Canada - Search List View</title>
+    <link rel="stylesheet" href="search-styles.css">
+  <!-- Add jsPDF library for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+  <!-- Backup jsPDF loading with multiple CDN fallbacks -->
+  <script>
+    // Check if jsPDF loaded, if not try backup CDNs
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        if (typeof window.jsPDF === 'undefined' && typeof jsPDF === 'undefined') {
+          console.log('Primary jsPDF failed, trying backup CDNs...');
+          
+          // Try backup CDN 1
+          const script1 = document.createElement('script');
+          script1.src = 'https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js';
+          script1.onload = function() {
+            console.log('Backup CDN 1 (unpkg) loaded successfully');
+            if (typeof jsPDF !== 'undefined' && typeof window.jsPDF === 'undefined') {
+              window.jsPDF = jsPDF;
+            }
+          };
+          script1.onerror = function() {
+            console.log('Backup CDN 1 failed, trying CDN 2...');
+            
+            // Try backup CDN 2
+            const script2 = document.createElement('script');
+            script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.min.js';
+            script2.onload = function() {
+              console.log('Backup CDN 2 (cloudflare alt) loaded successfully');
+              if (typeof jsPDF !== 'undefined' && typeof window.jsPDF === 'undefined') {
+                window.jsPDF = jsPDF;
+              }
+            };
+            script2.onerror = function() {
+              console.error('All jsPDF CDNs failed to load');
+            };
+            document.head.appendChild(script2);
+          };
+          document.head.appendChild(script1);
+        } else {
+          console.log('jsPDF loaded successfully from primary CDN');
+        }
+      }, 500); // Give the primary script time to load
+    });
+  </script>
+  
+  <!-- Authentication utility -->
+  <script src="auth.js"></script>
+  <script src="auth-guard.js"></script>
+  
+  <!-- Update auth link based on login status -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const authLink = document.getElementById('auth-link');
+      if (authLink && window.authManager) {
+        if (window.authManager.isAuthenticated()) {
+          authLink.textContent = 'LOGOUT';
+          authLink.href = '#';
+          authLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.authManager.logout();
+          });
+        } else {
+          authLink.textContent = 'LOGIN';
+          authLink.href = 'LoginPage.html';
+        }
+      }
+    });
+  </script>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="header-left">
+        <h1>AGRICULTURAL AND AGRI-FOOD CANADA</h1>
+      </div>
+      <div class="header-right">
+        <div class="admin-section">
+          <span class="user-name-role"></span>
+          <div class="user-profile">
+            <div class="profile-icon">P</div>
+          </div>
+        </div>
+        <nav>
+          <ul>
+            <li><a href="homepage.html">HOME</a></li>
+            <li><a href="dashboard.html">DASHBOARD</a></li>
+            <li><a href="search.html" class="active">SEARCH</a></li>
+            <li><a href="user-management.html">USER</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="page-title">
+      <h2>SEARCH LIST VIEW</h2>
+    </div>
+
+    <!-- Search and Controls Section -->
+    <section class="search-controls">
+      <div class="controls-container">
+        <!-- Search Bar -->
+        <div class="search-section">
+          <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="SEARCH" />
+            <button class="search-btn">🔍</button>
+          </div>
+        </div>
+
+        <!-- View Toggle -->
+        <div class="view-toggle">
+          <button id="listViewBtn" class="view-btn active">
+            <span class="dropdown-arrow">▼</span> List View
+          </button>
+          <button id="pictureViewBtn" class="view-btn">Picture View</button>
+        </div>
+
+        <!-- Filter Button -->
+        <div class="filter-section">
+          <button id="filterBtn" class="filter-btn">🔧</button>
+        </div>
+
+        <!-- Import/Export Buttons -->
+        <div class="import-export">
+          <button id="importBtn" class="import-btn">IMPORT TO DATABASE</button>
+          <button id="exportBtn" class="export-btn">EXPORT TO DATABASE</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bulk Actions Controls -->
+    <section id="bulkActionsSection" class="bulk-actions-section" style="display: none;">
+      <div class="bulk-actions-container">
+        <div class="selected-count">
+          <span id="selectedCount">0</span> entries selected
+        </div>
+        <div class="bulk-action-buttons">
+          <button id="deleteSelectedBtn" class="delete-selected-btn">🗑️ Delete Selected</button>
+          <button id="exportSelectedPdfBtn" class="export-selected-btn">📄 Export Selected as PDF</button>
+          <button id="exportSelectedCsvBtn" class="export-selected-btn">📊 Export Selected as CSV</button>
+          <button id="clearSelectionBtn" class="clear-selection-btn">✕ Clear Selection</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- List View Export Controls -->
+    <section id="listExportControls" class="list-export-controls">
+      <div class="export-controls-container">
+        <div class="sort-controls">
+          <label for="listSortSelect">Sort by:</label>
+          <select id="listSortSelect">
+            <option value="species">Species (A-Z)</option>
+            <option value="cultivar">Cultivar Name (A-Z)</option>
+            <option value="country">Country (A-Z)</option>
+            <option value="state">State/Province (A-Z)</option>
+            <option value="city">City (A-Z)</option>
+          </select>
+          <button id="listSortOrderBtn" class="sort-order-btn" data-order="asc">↑ Ascending</button>
+        </div>
+        <div class="export-buttons">
+          <button id="listExportPdfBtn" class="export-pdf-btn">📄 Export as PDF</button>
+          <button id="listExportCsvBtn" class="export-csv-btn">📊 Export as CSV</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Picture View Export Controls -->
+    <section id="pictureExportControls" class="picture-export-controls" style="display: none;">
+      <div class="export-controls-container">
+        <div class="sort-controls">
+          <label for="sortSelect">Sort by:</label>
+          <select id="sortSelect">
+            <option value="species">Species (A-Z)</option>
+            <option value="cultivar">Cultivar Name (A-Z)</option>
+            <option value="country">Country (A-Z)</option>
+            <option value="state">State/Province (A-Z)</option>
+            <option value="city">City (A-Z)</option>
+          </select>
+          <button id="sortOrderBtn" class="sort-order-btn" data-order="asc">↑ Ascending</button>
+        </div>
+        <div class="export-buttons">
+          <button id="exportPdfBtn" class="export-pdf-btn">📄 Export as PDF</button>
+          <button id="exportCsvBtn" class="export-csv-btn">📊 Export as CSV</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter Panel (Hidden by default) -->
+    <section id="filterPanel" class="filter-panel" style="display: none;">
+      <div class="filter-container">
+        <h3>Filter Options</h3>
+        <div class="filter-grid">
+          <div class="filter-group">
+            <label for="speciesFilter">Species:</label>
+            <select id="speciesFilter">
+              <option value="">All Species</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="cultivarFilter">Cultivar:</label>
+            <select id="cultivarFilter">
+              <option value="">All Cultivars</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="countryFilter">Country:</label>
+            <select id="countryFilter">
+              <option value="">All Countries</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="stateFilter">State/Province:</label>
+            <select id="stateFilter">
+              <option value="">All States/Provinces</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="cityFilter">City:</label>
+            <select id="cityFilter">
+              <option value="">All Cities</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-actions">
+          <button id="applyFilters" class="apply-btn">Apply Filters</button>
+          <button id="clearFilters" class="clear-btn">Clear All</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Data Table Section -->
+    <section class="data-section">
+      <div class="table-container">
+        <!-- List View Table -->
+        <div id="listView" class="table-view">
+          <table id="dataTable">
+            <thead>
+              <tr>
+                <th class="checkbox-column">
+                  <input type="checkbox" id="selectAll" title="Select All">
+                </th>
+                <th class="sortable" data-column="species">
+                  SPECIES
+                  <span class="sort-arrow">↕</span>
+                </th>
+                <th class="sortable" data-column="cultivar">
+                  CULTIVAR NAME
+                  <span class="sort-arrow">↕</span>
+                </th>
+                <th class="sortable" data-column="country">
+                  ORIGIN OF COUNTRY
+                  <span class="sort-arrow">↕</span>
+                </th>
+                <th class="sortable" data-column="state">
+                  STATE/PROVINCE
+                  <span class="sort-arrow">↕</span>
+                </th>
+                <th class="sortable" data-column="city">
+                  CITY
+                  <span class="sort-arrow">↕</span>
+                </th>
+                <th>IMAGE</th>
+                <th>MORE INFO</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <!-- Data will be populated here -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Picture View Grid -->
+        <div id="pictureView" class="picture-view" style="display: none;">
+          <div class="picture-view-header">
+            <h3 id="pictureViewTitle">Apple Species Information</h3>
+            <div class="view-stats">
+              <span id="totalCount">0 entries</span>
+            </div>
+          </div>
+          <div id="pictureGrid" class="picture-grid">
+            <!-- Picture cards will be populated here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Add New Entry Button -->
+      <div class="add-entry-section">
+        <button id="addEntryBtn" class="add-entry-btn">+ Add New Entry</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-left">
+        <span class="contact-icon">✉</span>
+        <span>CONTACT US</span>
+      </div>
+      <div class="footer-center">
+        <span>© AGRICULTURAL AND AGRI-FOOD CANADA</span>
+      </div>
+      <div class="footer-right">
+        <span>TERMS AND CONDITIONS</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Add/Edit Entry Modal -->
+  <div id="entryModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">Add New Entry</h3>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="entryForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="entrySpecies">Species *</label>
+              <input type="text" id="entrySpecies" required>
+            </div>
+            <div class="form-group">
+              <label for="entryCultivar">Cultivar Name *</label>
+              <input type="text" id="entryCultivar" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="entryCountry">Origin of Country *</label>
+              <input type="text" id="entryCountry" required>
+            </div>
+            <div class="form-group">
+              <label for="entryState">State/Province</label>
+              <input type="text" id="entryState">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="entryCity">City</label>
+              <input type="text" id="entryCity">
+            </div>
+            <div class="form-group">
+              <label for="entryImage">Image</label>
+              <input type="file" id="entryImage" accept="image/*">
+              <div class="image-preview">
+                <img id="imagePreview" style="display: none;">
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="entryNotes">Additional Notes</label>
+            <textarea id="entryNotes" rows="3"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button id="saveEntry" class="save-btn">Save Entry</button>
+        <button id="cancelEntry" class="cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Upload Modal -->
+  <div id="imageModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Upload Image</h3>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="upload-area">
+          <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+          <div class="upload-placeholder" onclick="document.getElementById('imageUpload').click()">
+            <div class="upload-icon">📷</div>
+            <p>Click to upload image</p>
+          </div>
+          <img id="uploadPreview" style="display: none;">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="saveImage" class="save-btn">Save Image</button>
+        <button id="cancelImage" class="cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden file inputs for import/export -->
+  <input type="file" id="importFile" accept=".json,.csv" style="display: none;">
+
+  <script>
+document.addEventListener("DOMContentLoaded", function() {
+  fetch("http://localhost:3000/apples/filters")
+    .then(response => response.json())
+    .then(data => {
+      function fillDropdown(id, values, defaultText) {
+        const select = document.getElementById(id);
+        if (!select) return;
+        select.innerHTML = `<option value="">${defaultText}</option>`;
+        values.forEach(val => {
+          const option = document.createElement("option");
+          option.value = val;
+          option.textContent = val;
+          select.appendChild(option);
+        });
+      }
+
+      fillDropdown("speciesFilter", data.species, "All Species");
+      fillDropdown("cultivarFilter", data.cultivarNames, "All Cultivars");
+      fillDropdown("countryFilter", data.originCountries, "All Countries");
+      fillDropdown("stateFilter", data.originProvinces, "All States/Provinces");
+      fillDropdown("cityFilter", data.originCities, "All Cities");
+    })
+    .catch(err => {
+      console.error("Failed to load filter values:", err);
+    });
+});
+</script>
+
+  <!-- Authentication utility -->
+  <script src="auth.js"></script>
+  <script src="auth-guard.js"></script>
+  <script src="search-script.js"></script>
+</body>
+</html>

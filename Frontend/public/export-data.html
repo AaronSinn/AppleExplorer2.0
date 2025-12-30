@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Export Data - Agriculture and Agri-Food Canada</title>
+  <link rel="stylesheet" href="export-data-styles.css">
+  <!-- jsPDF library for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="header-left">
+        <h1>AGRICULTURE AND AGRI-FOOD CANADA</h1>
+      </div>
+      <div class="header-right">
+        <div class="admin-section">
+          ADMINISTRATION/USER LOGIN
+          <div class="user-profile">
+            <div class="profile-icon">P</div>
+          </div>
+        </div>
+        <nav>
+          <ul>
+            <li><a href="index.html">HOME</a></li>
+            <li><a href="dashboard.html">DASHBOARD</a></li>
+            <li><a href="search.html">SEARCH</a></li>
+            <li><a href="user-management.html">USER</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="page-title">
+      <h2>EXPORT DATA</h2>
+    </div>
+
+    <!-- Search and Export Controls -->
+    <section class="controls-section">
+      <div class="controls-container">
+        <div class="search-controls">
+          <div class="search-input-group">
+            <div class="search-icon">🔍</div>
+            <input type="text" id="searchInput" placeholder="SEARCH" class="search-input">
+            <button id="searchBtn" class="search-btn">🔍</button>
+          </div>
+        </div>
+        
+        <div class="export-controls">
+          <div class="export-options">
+            <button id="exportPdfBtn" class="export-btn pdf-btn">EXPORT PDF</button>
+            <button id="exportCsvBtn" class="export-btn csv-btn">EXPORT CSV</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Column Selection and Data Table -->
+    <section class="data-section">
+      <div class="data-container">
+        
+        <!-- Column Selection Header -->
+        <div class="column-selection">
+          <div class="selection-controls">
+            <button id="selectAllBtn" class="selection-btn">SELECT ALL</button>
+            <button id="deselectAllBtn" class="selection-btn">DESELECT ALL</button>
+            <span class="selected-count">Selected: <span id="selectedCount">6</span> columns</span>
+          </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-container">
+          <table class="data-table" id="dataTable">
+            <thead>
+              <tr class="header-row">
+                <th class="column-header">
+                  <div class="header-content">
+                    <input type="checkbox" id="speciesCheck" class="column-checkbox" checked>
+                    <label for="speciesCheck" class="column-label">SPECIES</label>
+                  </div>
+                </th>
+                <th class="column-header">
+                  <div class="header-content">
+                    <input type="checkbox" id="cultivarCheck" class="column-checkbox" checked>
+                    <label for="cultivarCheck" class="column-label">CULTIVAR NAME</label>
+                  </div>
+                </th>
+                <th class="column-header">
+                  <div class="header-content">
+                    <input type="checkbox" id="countryCheck" class="column-checkbox" checked>
+                    <label for="countryCheck" class="column-label">ORIGIN OF COUNTRY</label>
+                  </div>
+                </th>
+                <th class="column-header">
+                  <div class="header-content">
+                    <input type="checkbox" id="stateCheck" class="column-checkbox" checked>
+                    <label for="stateCheck" class="column-label">STATE/PROVINCE</label>
+                  </div>
+                </th>
+                <th class="column-header">
+                  <div class="header-content">
+                    <input type="checkbox" id="cityCheck" class="column-checkbox" checked>
+                    <label for="cityCheck" class="column-label">CITY</label>
+                  </div>
+                </th>
+                <th class="column-header">
+                  <div class="header-content">
+                    <input type="checkbox" id="moreInfoCheck" class="column-checkbox" checked>
+                    <label for="moreInfoCheck" class="column-label">MORE INFO</label>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="dataTableBody">
+              <!-- Data rows will be populated here -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Export Summary -->
+        <div class="export-summary">
+          <div class="summary-stats">
+            <div class="stat-item">
+              <span class="stat-number" id="totalRecords">0</span>
+              <span class="stat-label">Total Records</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number" id="filteredRecords">0</span>
+              <span class="stat-label">Filtered Records</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number" id="selectedColumns">6</span>
+              <span class="stat-label">Selected Columns</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-left">
+        <span class="contact-icon">✉</span>
+        <span>CONTACT US</span>
+      </div>
+      <div class="footer-center">
+        <span>© AGRICULTURAL AND AGRI-FOOD CANADA</span>
+      </div>
+      <div class="footer-right">
+        <span>TERMS AND CONDITIONS</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Export Options Modal -->
+  <div id="exportModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Export Options</h3>
+        <span class="close" id="closeModal">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="export-format-selection">
+          <h4>Select Export Format:</h4>
+          <div class="format-options">
+            <label class="format-option">
+              <input type="radio" name="exportFormat" value="pdf" checked>
+              <span class="format-label">PDF Document</span>
+              <span class="format-description">Includes images and formatting</span>
+            </label>
+            <label class="format-option">
+              <input type="radio" name="exportFormat" value="csv">
+              <span class="format-label">CSV Spreadsheet</span>
+              <span class="format-description">Data only, no images</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="export-options-section">
+          <h4>Export Options:</h4>
+          <div class="option-checkboxes">
+            <label class="option-checkbox">
+              <input type="checkbox" id="includeImages" checked>
+              <span>Include Images (PDF only)</span>
+            </label>
+            <label class="option-checkbox">
+              <input type="checkbox" id="includeHeaders" checked>
+              <span>Include Column Headers</span>
+            </label>
+            <label class="option-checkbox">
+              <input type="checkbox" id="includeMetadata" checked>
+              <span>Include Export Metadata</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filename-section">
+          <h4>File Naming:</h4>
+          <div class="filename-options">
+            <label class="filename-option">
+              <input type="radio" name="filenameFormat" value="auto" checked>
+              <span>Auto-generate (Species_County_ACNO)</span>
+            </label>
+            <label class="filename-option">
+              <input type="radio" name="filenameFormat" value="custom">
+              <span>Custom filename:</span>
+              <input type="text" id="customFilename" placeholder="Enter filename" disabled>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="cancelExport" class="cancel-btn">Cancel</button>
+        <button id="confirmExport" class="confirm-btn">Export</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Processing Modal -->
+  <div id="processingModal" class="modal">
+    <div class="modal-content processing-modal">
+      <div class="modal-body">
+        <div class="processing-animation">
+          <div class="spinner"></div>
+          <h3>Generating Export...</h3>
+          <p id="processingStatus">Preparing data</p>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Container -->
+  <div id="notificationContainer"></div>
+
+  <script src="export-data-script.js"></script>
+</body>
+</html>
