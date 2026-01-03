@@ -32,6 +32,17 @@ Copy the following .env files into the `Backend` folder
 * .env2
 
 ## Seeding the Database
+Start your MongoDB Connection
+
+Import data from TDInventory.xlsx to MongoDB
+```bash
+node importToMongo.js
+```
+
+Import Data from 2013Databsae.xlsx and Narrative.xlsx
+```bash
+node add2013Data.js
+```
 
 ## Running the Application
 Start your MongoDB Connection
