@@ -32,7 +32,7 @@ Copy the following .env files into the `Backend` folder
 * .env2
 
 ## Seeding the Database
-Start your MongoDB Connection
+Start your MongoDB Connection \
 <img width="276" height="32" alt="image" src="https://github.com/user-attachments/assets/e5a6aeda-cfaf-42a9-9711-28543a72e68b" />
 
 Import data from TDInventory.xlsx to MongoDB
