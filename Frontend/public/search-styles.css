@@ -1205,3 +1205,31 @@ a.hidden-link:active {
     text-align: center;
   }
 }
+
+.search-bar {
+  position: relative;       
+}
+
+.suggestions-box {
+  position: absolute;
+  top: 100%;             
+  left: 0;
+  width: 100%;
+  background: white;
+  color: black;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 9999;     
+  display: none;           
+}
+
+.suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background-color: #eee;
+}

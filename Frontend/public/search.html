@@ -110,11 +110,15 @@
     <!-- Search and Controls Section -->
     <section class="search-controls">
       <div class="controls-container">
+        
         <!-- Search Bar -->
         <div class="search-section">
           <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="SEARCH" />
+            <input type="text" id="searchInput" placeholder="SEARCH" autocomplete="off" />
             <button class="search-btn">🔍</button>
+
+            <!-- Suggestion dropdown -->
+             <div id = "suggestionsBox" class = "suggestions-box" style= "display:none;"></div>
           </div>
         </div>
 
@@ -427,6 +431,84 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 </script>
+
+<script>
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("searchInput");
+  const suggestionsBox = document.getElementById("suggestionsBox");
+
+  let allKeywords = [];
+
+  //Get keywords
+  fetch("http://localhost:3000/apples/")
+    .then(res => res.json())
+    .then(data => {
+
+      const keywords = new Set();
+
+      //Searchable keywords
+      data.forEach(item => {
+        [item.profile.species, item.cultivarName, item.origin.country, item.origin.province, item.origin.city]
+          .filter(Boolean)
+          .forEach(val => keywords.add(val));
+      });
+
+      allKeywords = Array.from(keywords);
+    })
+
+    
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase().trim();
+
+    //hides box if no search
+    if (!query) {
+      suggestionsBox.style.display = "none";
+      return;
+    }
+
+    const matched = allKeywords
+      .filter(k => k.toLowerCase().includes(query))
+      //show first 8 suggestions
+      .slice(0, 8);
+
+      //hides box if no matches
+    if (matched.length === 0) {
+      suggestionsBox.style.display = "none";
+      return;
+    }
+
+    //build clickable dropdown
+    suggestionsBox.innerHTML = matched
+    .map(item => `<div class="suggestion-item" data-value="${item}">${item}</div>`)
+    .join("");
+
+    suggestionsBox.style.display = "block";
+  });
+
+  //Make suggestions clickable
+  suggestionsBox.addEventListener("click", (e) => {
+  if (e.target.classList.contains("suggestion-item")) {
+
+    //add clicked text to search box
+    const value = e.target.getAttribute("data-value");
+    searchInput.value = value;
+
+    //Send input as if user had typed it
+    searchInput.dispatchEvent(new Event("input"));
+
+    //Hide suggestions box
+    suggestionsBox.style.display = "none";
+
+  }
+});
+
+});
+</script>
+
+
 
   <!-- Authentication utility -->
   <script src="auth.js"></script>
