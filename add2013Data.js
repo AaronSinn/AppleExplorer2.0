@@ -3,7 +3,6 @@
     These functions make additions to that file using the 2013Databse.xlsx file.
 */
 
-
 const xlsx = require("xlsx");
 const { MongoClient, Double, ObjectId } = require("mongodb");
 
@@ -11,55 +10,6 @@ const uri = "mongodb://localhost:27017/AppleExplorer";
 const client = new MongoClient(uri);
 
 const workbook = xlsx.readFile("RawData/2013Database.xlsx");
-const NarrativeWorkbook = xlsx.readFile("RawData/Narrative.xlsx");
-
-async function updateNarratives() {
-
-  try {
-    // Load Excel File
-    const sheetName = workbook.SheetNames[0]; //Narrative
-    const rows = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-    // Connect to Database
-    await client.connect();
-    const db = client.db("AppleExplorer");
-    const applesCol = db.collection("Apples");
-
-    const narrativeMap = new Map();
-    rows.forEach(row => {
-      if (row["HARROW ACCESSION"]) {
-        narrativeMap.set(
-          String(row["HARROW ACCESSION"]).trim(),
-          row["Narrative"] || null // empty string if no narrative
-        );
-      }
-    });
-
-    console.log(`Loaded ${narrativeMap.size} narrative entries from Excel.`);
-
-    let updatedCount = 0;
-
-    // Loop through Excel entries and update matching Apple documents
-    // TODO: LOG Apples that have an error
-    for (const [accession, narrative] of narrativeMap.entries()) {
-      const result = await applesCol.updateOne(
-        { accession: accession },
-        { $set: { narrative } } 
-      );
-
-      if (result.matchedCount > 0) {
-        //console.log(`Updated ACCESSION ${accession}`);
-        updatedCount++;
-      }
-    }
-
-    console.log(`Done. Updated ${updatedCount} Apple documents with narrative.\n`);
-  } catch (err) {
-    console.error("Error updating narratives:", err);
-  } finally {
-    await client.close();
-  }
-}
 
 async function updateLengthAndWidth(){
     try {
@@ -181,56 +131,7 @@ async function updateTaxon(){
   }
 }
 
-// Uses data from Narrative.XLSX instead of 2013Database.XLSX
-// PROBLEM: There are multiple Narratives for some Accession Numbers
-async function updateNarrativesLongForm(){
-    try {
-    // Load Excel File
-    const sheetName = NarrativeWorkbook.SheetNames[0]; //Narrative
-    const rows = xlsx.utils.sheet_to_json(NarrativeWorkbook.Sheets[sheetName]);
-
-    // Connect to Database
-    await client.connect();
-    const db = client.db("AppleExplorer");
-    const applesCol = db.collection("Apples");
-
-    const narrativeMap = new Map();
-    rows.forEach(row => {
-      if (row["HARROW ACCESSION"]) {
-        narrativeMap.set(
-          String(row["HARROW ACCESSION"]).trim(),
-          row["Narrative"] || null // empty string if no narrative
-        );
-      }
-    });
-
-    console.log(`Loaded ${narrativeMap.size} narrative entries from Excel.`);
-
-    let updatedCount = 0;
-
-    // Loop through Excel entries and update matching Apple documents
-    // TODO: LOG Apples that have an error
-    for (const [accession, narrative] of narrativeMap.entries()) {
-      const result = await applesCol.updateOne(
-        { accession: accession },
-        { $set: { narrative } } 
-      );
-
-      if (result.matchedCount > 0) {
-        //console.log(`Updated ACCESSION ${accession}`);
-        updatedCount++;
-      }
-    }
-
-    console.log(`Done. Updated ${updatedCount} Apple documents with narrative.\n`);
-  } catch (err) {
-    console.error("Error updating narratives:", err);
-  }
-}
-
 async function run(){
-  // updateNarratives();
-  await updateNarrativesLongForm();
   await updateLengthAndWidth();
   await updateTaxon();
   await client.close();

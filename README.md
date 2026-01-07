@@ -40,9 +40,14 @@ Import data from TDInventory.xlsx to MongoDB
 node importToMongo.js
 ```
 
-Import Data from 2013Databsae.xlsx and Narrative.xlsx
+Import data from 2013Databsae.xlsx
 ```bash
 node add2013Data.js
+```
+
+Import data from 2013Databsae.xlsx and Narrative.xlsx
+```bash
+node .\addNarratives.js
 ```
 
 ## Running the Application
