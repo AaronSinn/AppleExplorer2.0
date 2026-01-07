@@ -47,7 +47,7 @@ node add2013Data.js
 
 Import data from 2013Databsae.xlsx and Narrative.xlsx
 ```bash
-node .\addNarratives.js
+node addNarratives.js
 ```
 
 ## Running the Application
