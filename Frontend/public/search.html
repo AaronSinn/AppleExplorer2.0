@@ -434,11 +434,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <script>
 
-
-
 document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("searchInput");
   const suggestionsBox = document.getElementById("suggestionsBox");
+  const maxShownItems = 8;
 
   let allKeywords = [];
 
@@ -472,9 +471,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const matched = allKeywords
       .filter(k => k.toLowerCase().includes(query))
       //show first 8 suggestions
-      .slice(0, 8);
+      .slice(0, maxShownItems);
 
-      //hides box if no matches
+    //index of current selected item
+    selected = -1;
+
+    //hides box if no matches
     if (matched.length === 0) {
       suggestionsBox.style.display = "none";
       return;
@@ -486,11 +488,38 @@ document.addEventListener("DOMContentLoaded", () => {
     .join("");
 
     suggestionsBox.style.display = "block";
+
+    //arrow key navigation between options
+    document.onkeydown = function(e){
+    switch (e.keyCode){
+      case 13: //Enter key
+        selectedItemText = searchInput.value
+        searchInput.dispatchEvent(new Event("input"));
+        searchInput.value = selectedItemText;
+        break;
+      case 38: //Up arrow
+        if(-1 < selected - 1 && selected - 1 < matched.length){
+          selected--;
+          searchInput.value = matched[selected];
+        }
+        break;
+      case 40: //Down arrow
+        if(-1 < selected + 1 && selected + 1 < matched.length){
+          selected++;
+          searchInput.value = matched[selected];
+        }
+        console.log(selected)
+        break; 
+    }
+  }
+
   });
 
-  //Make suggestions clickable
-  suggestionsBox.addEventListener("click", (e) => {
-  if (e.target.classList.contains("suggestion-item")) {
+
+  document.addEventListener("click", (e) => {
+    //clickable suggestions
+
+    if (e.target.classList.contains("suggestion-item")) {
 
     //add clicked text to search box
     const value = e.target.getAttribute("data-value");
@@ -498,17 +527,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     //Send input as if user had typed it
     searchInput.dispatchEvent(new Event("input"));
-
-    //Hide suggestions box
-    suggestionsBox.style.display = "none";
-
+    
   }
-});
+  //Hide suggestions box after click
+  //To-do: Also disable arrow keys when this happens
+  suggestionsBox.style.display = "none";
+  });
 
 });
 </script>
-
-
 
   <!-- Authentication utility -->
   <script src="auth.js"></script>
