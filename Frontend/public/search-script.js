@@ -715,6 +715,15 @@ class SearchListManager {
         img.className = 'table-image';
         img.onclick = () => this.openImageModal(item.id);
         imageCell.appendChild(img);
+        
+        const downloadLink = document.createElement('a');
+    downloadLink.href = `${item.image}?download=true`; // assumes your /file/:filename route handles ?download
+    downloadLink.textContent = 'Download';
+    downloadLink.className = 'download-btn';
+    downloadLink.style.display = 'block';
+    downloadLink.style.marginTop = '5px';
+    imageCell.appendChild(downloadLink);
+
       } else {
         const uploadBtn = document.createElement('button');
         uploadBtn.textContent = 'Upload';
@@ -767,6 +776,13 @@ class SearchListManager {
         img.src = item.image;
         img.onclick = () => this.openImageModal(item.id);
         imageContainer.appendChild(img);
+        const downloadLink = document.createElement('a');
+  downloadLink.href = `${item.image}?download=true`;
+  downloadLink.textContent = 'Download';
+  downloadLink.className = 'download-btn';
+  downloadLink.style.display = 'block';
+  downloadLink.style.marginTop = '5px';
+  imageContainer.appendChild(downloadLink);
       } else {
         imageContainer.textContent = 'No Image Available';
         imageContainer.style.cursor = 'pointer';

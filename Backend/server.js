@@ -30,9 +30,6 @@ app.use(express.json());
 // Use authentication routes
 app.use("/api/auth", authRoutes);
 
-// Serve images from the PMP folder
-app.use('/images', express.static(path.join(__dirname, '../public/PMP')));
-
 // Serve frontend files
 app.use(express.static(path.join(__dirname, '../Frontend/public')));
 
@@ -104,7 +101,7 @@ app.get("/dashboard", ensureAuth, ensureReadOnly, (req, res) => {
 
 // Default route
 app.get("/", (req, res) => {
-  res.send("Apple Explorer API is live!");
+  res.send(" Apple Explorer API is live!");
 });
 
 // GET apples with filtering
@@ -255,6 +252,51 @@ app.delete("/apples/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete apple" });
   }
 });
+
+// Serve a single image by filename (view or download)
+app.get("/file/:filename", async (req, res) => {
+  try {
+    if (!gfs) return res.status(500).send("GridFS not initialized");
+
+    const files = await gfs.find({ filename: req.params.filename }).toArray();
+    if (!files || files.length === 0) return res.status(404).send("File not found");
+
+    const file = files[0];
+    res.set('Content-Type', file.metadata?.mimetype || 'application/octet-stream');
+
+    // Optional download if query ?download=true
+    if (req.query.download === 'true') {
+      res.set('Content-Disposition', `attachment; filename="${file.filename}"`);
+    }
+
+    gfs.openDownloadStreamByName(req.params.filename).pipe(res);
+
+  } catch (err) {
+    console.error('Error serving file:', err);
+    res.status(500).send("Server error");
+  }
+});
+
+// List all files in GridFS (for frontend display)
+app.get("/files", async (req, res) => {
+  try {
+    if (!gfs) return res.status(500).send("GridFS not initialized");
+
+    const files = await gfs.find().toArray();
+    res.json(files.map(f => ({
+      filename: f.filename,
+      id: f._id,
+      uploadDate: f.uploadDate,
+      length: f.length,
+      mimetype: f.metadata?.mimetype
+    })));
+  } catch (err) {
+    console.error('Error listing files:', err);
+    res.status(500).send("Server error");
+  }
+});
+
+
 
 // Upload CSV and import apples
 app.post("/apples/upload", upload.single("file"), async (req, res) => {
@@ -505,7 +547,7 @@ app.post("/upload-image", imageUpload.single('image'), async (req, res) => {
     // Create a unique filename
     const filename = `${Date.now()}_${originalname}`;
     
-    // Create a GridFS upload stream
+    // Creating a GridFS upload stream
     const uploadStream = gfs.openUploadStream(filename, {
       metadata: {
         originalName: originalname,
@@ -566,6 +608,11 @@ app.get("/image/:imageId", async (req, res) => {
       'Content-Length': file.length,
       'Cache-Control': 'public, max-age=86400' // Cache for 24 hours
     });
+
+    // Check if we should force download
+    if (req.query.download === 'true') {
+      res.set('Content-Disposition', `attachment; filename="${file.metadata?.originalName || file.filename}"`);
+    }
 
     // Create download stream and pipe to response
     const downloadStream = gfs.openDownloadStream(objectId);
