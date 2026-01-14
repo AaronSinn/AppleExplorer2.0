@@ -15,6 +15,7 @@ class SearchListManager {
     this.maxShownItems = 8;
     this.selectedItem = -1;
     this.matched = [];
+    this.searchBy = "none";
     
     this.init();
   }
@@ -104,7 +105,6 @@ class SearchListManager {
     // Search functionality
     document.getElementById('searchInput').addEventListener('input', (e) => {
       this.handleSearch(e.target.value.toLowerCase().trim());
-
     });
 
     // View toggle
@@ -264,9 +264,16 @@ class SearchListManager {
       });
     });
 
+    //search by column
+    addEventListener("change", (event) => {
+      this.searchBy = event.target.value;
+      this.handleSearch(document.getElementById('searchInput').value.toLowerCase().trim());
+     })
+
+
+    //make search active when clicked
     document.getElementById('searchInput').addEventListener('click', () => {
       this.searchActive = true;
-      console.log("Clicked");
       this.buildDropdown();
     });
 
@@ -278,23 +285,17 @@ class SearchListManager {
         document.getElementById('searchInput').value = value;
         //Send input as if user had typed it
         document.getElementById('searchInput').dispatchEvent(new Event("input"));
-        
       }
       if(!(e.target.id == ('searchInput'))){
         this.searchActive = false;
-        console.log("Clicked outside search bar: searchActive is " + this.searchActive);
         document.getElementById("suggestionsBox").style.display = "none";
-      }
-
-      //Hide suggestions box after click
-      //To-do: Also disable arrow keys when this happens
-
-      
+      }      
     });
 
     document.addEventListener('keydown', (e) => {
-      console.log(e.key);
-      console.log(this.searchActive);
+      if(!this.searchActive){
+        return;
+      }
       if(e.key=='Enter'){
         console.log("logged enter");
         const selectedItemText = document.getElementById('searchInput').value;
@@ -302,30 +303,14 @@ class SearchListManager {
         document.getElementById('searchInput').value = selectedItemText;
       }
       else if(e.key=='ArrowUp'){
-        console.log("logged up");
-        if(!this.searchActive){
-          console.log("Inactive");
-          return;
-        }
-        console.log(this.selectedItem + "," + this.matched.length);
         if(-1 < this.selectedItem - 1 && this.selectedItem - 1 < this.matched.length){
-          console.log("Success");
-
           this.selectedItem--;
           document.getElementById('searchInput').value = this.matched[this.selectedItem];
         }
       }
       else if(e.key=='ArrowDown'){
-        console.log("logged down");
-        if(!this.searchActive){
-          console.log("Inactive");
-          return;
-        }
-        console.log(this.selectedItem + "," + this.matched.length);
         if(-1 < this.selectedItem + 1 && this.selectedItem + 1 < this.matched.length){
-          console.log("Success");
           this.selectedItem++;
-          console.log(this.selectedItem);
           document.getElementById('searchInput').value = this.matched[this.selectedItem];
         }
       }
@@ -338,9 +323,37 @@ class SearchListManager {
         this.closeModal(e.target);
       }
     });
+  }
 
-    document.addEventListener
-
+  filterData(searchTerm){
+    switch(this.searchBy){
+      case "none":
+        this.filteredData = this.data.filter(item => 
+        item.species.toLowerCase().includes(searchTerm) ||
+        item.cultivar.toLowerCase().includes(searchTerm) ||
+        item.country.toLowerCase().includes(searchTerm) ||
+        (item.state && item.state.toLowerCase().includes(searchTerm)) ||
+        (item.city && item.city.toLowerCase().includes(searchTerm)) ||
+        (item.notes && item.notes.toLowerCase().includes(searchTerm))
+          );
+        break;
+      case "species":
+        this.filteredData = this.data.filter(item => item.species.toLowerCase().includes(searchTerm));
+        break;
+      case "cultivar name":
+        this.filteredData = this.data.filter(item => item.cultivar.toLowerCase().includes(searchTerm));
+        break;
+      case "country":
+        this.filteredData = this.data.filter(item => item.country.toLowerCase().includes(searchTerm));
+        break;
+      case "state/province":
+        this.filteredData = this.data.filter(item => item.state && item.state.toLowerCase().includes(searchTerm));
+        break;
+      case "city":
+        this.filteredData = this.data.filter(item => item.city && item.city.toLowerCase().includes(searchTerm));
+        break;
+    }
+    
   }
 
   handleSearch(query) {
@@ -350,22 +363,15 @@ class SearchListManager {
     } else {
       this.searchActive = true;
       const searchTerm = query.toLowerCase();
-      this.filteredData = this.data.filter(item => 
-        item.species.toLowerCase().includes(searchTerm) ||
-        item.cultivar.toLowerCase().includes(searchTerm) ||
-        item.country.toLowerCase().includes(searchTerm) ||
-        (item.state && item.state.toLowerCase().includes(searchTerm)) ||
-        (item.city && item.city.toLowerCase().includes(searchTerm)) ||
-        (item.notes && item.notes.toLowerCase().includes(searchTerm))
-      );
-      this.matched = this.allKeywords
-      .filter(k => k.toLowerCase().includes(query))
+      this.filterData(searchTerm);
+
+      this.matched = this.allKeywords.filter(k => k.toLowerCase().includes(query))
       //show first 8 suggestions
       .slice(0, this.maxShownItems);
+   
 
       //index of current selected item
-      this.selected = -1;  
-      console.log(this.matched);
+      this.selected = -1;
 
       //hides box if no matches
       if (this.matched.length === 0) {
@@ -382,12 +388,14 @@ class SearchListManager {
     if (query.trim()) {
       this.logSearch(query.trim(), this.filteredData.length);
     }
-    
     this.sortData();
     this.renderData();
   }
 
   buildDropdown(){
+    if(this.matched.length == 0){
+      return;
+    }
     document.getElementById("suggestionsBox").innerHTML = this.matched
       .map(item => `<div class="suggestion-item" data-value="${item}">${item}</div>`)
       .join("");

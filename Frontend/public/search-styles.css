@@ -196,6 +196,15 @@ main {
   cursor: pointer;
 }
 
+#search-by{
+  padding: 12px 20px 12px 20px;
+  border: 2px solid #333;
+  border-radius: 25px;
+  font-size: 16px;
+  outline: none;
+
+}
+
 .view-toggle {
   display: flex;
   border: 1px solid #ccc;
