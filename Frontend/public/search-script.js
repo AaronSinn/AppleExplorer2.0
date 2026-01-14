@@ -10,6 +10,11 @@ class SearchListManager {
     this.imageMapping = {}; // Store image mapping
     this.selectedItems = new Set(); // Track selected items
     this.locationData = []; // Store location data for cascading filters
+    this.allKeywords = [];
+    this.searchActive = false;
+    this.maxShownItems = 8;
+    this.selectedItem = -1;
+    this.matched = [];
     
     this.init();
   }
@@ -20,6 +25,21 @@ class SearchListManager {
     this.bindEvents();
     this.renderData();
     this.populateFilterOptions();
+    fetch("http://localhost:3000/apples/")
+    .then(res => res.json())
+    .then(data => {
+
+      const keywords = new Set();
+
+      //Searchable keywords
+      data.forEach(item => {
+        [item.profile.species, item.cultivarName, item.origin.country, item.origin.province, item.origin.city]
+          .filter(Boolean)
+          .forEach(val => keywords.add(val));
+      });
+
+      this.allKeywords = Array.from(keywords);
+    })
   }
 
   async loadImageMapping() {
@@ -83,7 +103,8 @@ class SearchListManager {
   bindEvents() {
     // Search functionality
     document.getElementById('searchInput').addEventListener('input', (e) => {
-      this.handleSearch(e.target.value);
+      this.handleSearch(e.target.value.toLowerCase().trim());
+
     });
 
     // View toggle
@@ -243,18 +264,83 @@ class SearchListManager {
       });
     });
 
+    document.addEventListener("click", (e) => {
+      //clickable suggestions
+      if (e.target.classList.contains("suggestion-item")) {
+        //add clicked text to search box
+        const value = e.target.getAttribute("data-value");
+        document.getElementById('searchInput').value = value;
+        //Send input as if user had typed it
+        document.getElementById('searchInput').dispatchEvent(new Event("input"));
+      }
+      if(!(e.target.classList.contains("search-bar"))){
+        this.searchActive = false;
+        console.log("Clicked outside search bar: " + this.searchActive);
+      }
+
+      //Hide suggestions box after click
+      //To-do: Also disable arrow keys when this happens
+
+      document.getElementById("suggestionsBox").style.display = "none";
+    });
+
+    document.addEventListener('keydown', (e) => {
+      console.log(e.key);
+      console.log(this.searchActive);
+      if(e.key=='Enter'){
+        console.log("logged enter");
+        const selectedItemText = document.getElementById('searchInput').value;
+        document.getElementById('searchInput').dispatchEvent(new Event("input"));
+        document.getElementById('searchInput').value = selectedItemText;
+      }
+      else if(e.key=='ArrowUp'){
+        console.log("logged up");
+        if(!this.searchActive){
+          console.log("Inactive");
+          return;
+        }
+        console.log(this.selectedItem + "," + this.matched.length);
+        if(-1 < this.selectedItem - 1 && this.selectedItem - 1 < this.matched.length){
+          console.log("Success");
+
+          this.selectedItem--;
+          document.getElementById('searchInput').value = this.matched[this.selectedItem];
+        }
+      }
+      else if(e.key=='ArrowDown'){
+        console.log("logged down");
+        if(!this.searchActive){
+          console.log("Inactive");
+          return;
+        }
+        console.log(this.selectedItem + "," + this.matched.length);
+        if(-1 < this.selectedItem + 1 && this.selectedItem + 1 < this.matched.length){
+          console.log("Success");
+          this.selectedItem++;
+          console.log(this.selectedItem);
+          document.getElementById('searchInput').value = this.matched[this.selectedItem];
+        }
+      }
+
+    });
+
     // Close modals when clicking outside
     window.addEventListener('click', (e) => {
       if (e.target.classList.contains('modal')) {
         this.closeModal(e.target);
       }
     });
+
+    document.addEventListener
+
   }
 
   handleSearch(query) {
     if (!query.trim()) {
       this.filteredData = [...this.data];
+
     } else {
+      this.searchActive = true;
       const searchTerm = query.toLowerCase();
       this.filteredData = this.data.filter(item => 
         item.species.toLowerCase().includes(searchTerm) ||
@@ -264,6 +350,27 @@ class SearchListManager {
         (item.city && item.city.toLowerCase().includes(searchTerm)) ||
         (item.notes && item.notes.toLowerCase().includes(searchTerm))
       );
+      this.matched = this.allKeywords
+      .filter(k => k.toLowerCase().includes(query))
+      //show first 8 suggestions
+      .slice(0, this.maxShownItems);
+
+      //index of current selected item
+      this.selected = -1;  
+      console.log(this.matched);
+
+      //hides box if no matches
+      if (this.matched.length === 0) {
+        document.getElementById("suggestionsBox").style.display = "none";
+        return;
+      }
+
+      //build clickable dropdown
+      document.getElementById("suggestionsBox").innerHTML = this.matched
+      .map(item => `<div class="suggestion-item" data-value="${item}">${item}</div>`)
+      .join("");
+
+      document.getElementById("suggestionsBox").style.display = "block";
     }
     
     // Log the search if it's a non-empty query
@@ -1622,86 +1729,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Add fade-in animation
   document.body.classList.add('fade-in');
-  const searchInput = document.getElementById("searchInput");
-  const suggestionsBox = document.getElementById("suggestionsBox");
-  const maxShownItems = 8;
-
-  let allKeywords = [];
+  
 
   //Get keywords
-  fetch("http://localhost:3000/apples/")
-    .then(res => res.json())
-    .then(data => {
-
-      const keywords = new Set();
-
-      //Searchable keywords
-      data.forEach(item => {
-        [item.profile.species, item.cultivarName, item.origin.country, item.origin.province, item.origin.city]
-          .filter(Boolean)
-          .forEach(val => keywords.add(val));
-      });
-
-      allKeywords = Array.from(keywords);
-    })
-
-    
-  searchInput.addEventListener("input", () => {
-    const query = searchInput.value.toLowerCase().trim();
-
-    //hides box if no search
-    if (!query) {
-      suggestionsBox.style.display = "none";
-      return;
-    }
-
-    const matched = allKeywords
-      .filter(k => k.toLowerCase().includes(query))
-      //show first 8 suggestions
-      .slice(0, maxShownItems);
-
-    //index of current selected item
-    selected = -1;
-
-    //hides box if no matches
-    if (matched.length === 0) {
-      suggestionsBox.style.display = "none";
-      return;
-    }
-
-    //build clickable dropdown
-    suggestionsBox.innerHTML = matched
-    .map(item => `<div class="suggestion-item" data-value="${item}">${item}</div>`)
-    .join("");
-
-    suggestionsBox.style.display = "block";
-
-    //arrow key navigation between options
-    document.onkeydown = function(e){
-    switch (e.keyCode){
-      case 13: //Enter key
-        selectedItemText = searchInput.value
-        searchInput.dispatchEvent(new Event("input"));
-        searchInput.value = selectedItemText;
-        break;
-      case 38: //Up arrow
-        if(-1 < selected - 1 && selected - 1 < matched.length){
-          selected--;
-          searchInput.value = matched[selected];
-        }
-        break;
-      case 40: //Down arrow
-        if(-1 < selected + 1 && selected + 1 < matched.length){
-          selected++;
-          searchInput.value = matched[selected];
-        }
-        console.log(selected)
-        break; 
-    }
-  }
-
-  });
-
     fetch("http://localhost:3000/apples/filters")
     .then(response => response.json())
     .then(data => {
@@ -1728,22 +1758,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-  document.addEventListener("click", (e) => {
-    //clickable suggestions
 
-    if (e.target.classList.contains("suggestion-item")) {
-
-      //add clicked text to search box
-      const value = e.target.getAttribute("data-value");
-      searchInput.value = value;
-
-      //Send input as if user had typed it
-      searchInput.dispatchEvent(new Event("input"));
-    
-  }
-  //Hide suggestions box after click
-  //To-do: Also disable arrow keys when this happens
-  suggestionsBox.style.display = "none";
-  });
 
 });

@@ -112,6 +112,15 @@
       <div class="controls-container">
         
         <!-- Search Bar -->
+
+        <select name="search-by" id="search-by">
+          <option value="none">search..</option>
+          <option value="species">Species</option>
+          <option value="cultivar name">Cultivar Name</option>
+          <option value="country">Country</option>
+          <option value="state/province">State/Province</option>
+          <option value="city">City</option>
+        </select>
         <div class="search-section">
           <div class="search-bar">
             <input type="text" id="searchInput" placeholder="SEARCH" autocomplete="off" />
@@ -263,7 +272,7 @@
                   <span class="sort-arrow">↕</span>
                 </th>
                 <th class="sortable" data-column="country">
-                  ORIGIN OF COUNTRY
+                  COUNTRY OF ORIGIN
                   <span class="sort-arrow">↕</span>
                 </th>
                 <th class="sortable" data-column="state">
@@ -402,7 +411,7 @@
 
   <!-- Hidden file inputs for import/export -->
   <input type="file" id="importFile" accept=".json,.csv" style="display: none;">
-  
+
   <!-- Authentication utility -->
   <script src="auth.js"></script>
   <script src="auth-guard.js"></script>
