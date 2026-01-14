@@ -264,6 +264,12 @@ class SearchListManager {
       });
     });
 
+    document.getElementById('searchInput').addEventListener('click', () => {
+      this.searchActive = true;
+      console.log("Clicked");
+      this.buildDropdown();
+    });
+
     document.addEventListener("click", (e) => {
       //clickable suggestions
       if (e.target.classList.contains("suggestion-item")) {
@@ -272,16 +278,18 @@ class SearchListManager {
         document.getElementById('searchInput').value = value;
         //Send input as if user had typed it
         document.getElementById('searchInput').dispatchEvent(new Event("input"));
+        
       }
-      if(!(e.target.classList.contains("search-bar"))){
+      if(!(e.target.id == ('searchInput'))){
         this.searchActive = false;
-        console.log("Clicked outside search bar: " + this.searchActive);
+        console.log("Clicked outside search bar: searchActive is " + this.searchActive);
+        document.getElementById("suggestionsBox").style.display = "none";
       }
 
       //Hide suggestions box after click
       //To-do: Also disable arrow keys when this happens
 
-      document.getElementById("suggestionsBox").style.display = "none";
+      
     });
 
     document.addEventListener('keydown', (e) => {
@@ -366,11 +374,8 @@ class SearchListManager {
       }
 
       //build clickable dropdown
-      document.getElementById("suggestionsBox").innerHTML = this.matched
-      .map(item => `<div class="suggestion-item" data-value="${item}">${item}</div>`)
-      .join("");
-
-      document.getElementById("suggestionsBox").style.display = "block";
+      this.buildDropdown();
+      
     }
     
     // Log the search if it's a non-empty query
@@ -380,6 +385,14 @@ class SearchListManager {
     
     this.sortData();
     this.renderData();
+  }
+
+  buildDropdown(){
+    document.getElementById("suggestionsBox").innerHTML = this.matched
+      .map(item => `<div class="suggestion-item" data-value="${item}">${item}</div>`)
+      .join("");
+      document.getElementById("suggestionsBox").style.display = "block";
+
   }
 
   async logSearch(searchQuery, resultsCount) {
