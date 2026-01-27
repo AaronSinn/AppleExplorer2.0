@@ -4,8 +4,8 @@ const { MongoClient, Double, ObjectId } = require("mongodb");
 const uri = "mongodb://localhost:27017/AppleExplorer"; 
 const client = new MongoClient(uri);
 
-const workbook2013 = xlsx.readFile("RawData/2013Database.xlsx");
-const NarrativeWorkbook = xlsx.readFile("RawData/Narrative.xlsx");
+const workbook2013 = xlsx.readFile("../RawData/2013Database.xlsx");
+const NarrativeWorkbook = xlsx.readFile("../RawData/Narrative.xlsx");
 
 const insertedSet = new Set();
 

@@ -35,14 +35,14 @@ Copy the following .env files into the `Backend` folder
 Start your MongoDB Connection \
 <img width="276" height="32" alt="image" src="https://github.com/user-attachments/assets/e5a6aeda-cfaf-42a9-9711-28543a72e68b" />
 
-Import data from TDInventory.xlsx to MongoDB
+Make sure you're in the MongoScripts Directory
 ```bash
-node importToMongo.js
+cd MongoScripts
 ```
 
-Import data from 2013Databsae.xlsx
+Import data from Complete_Apple_Dataset.xlsx to MongoDB
 ```bash
-node add2013Data.js
+node importAppleDataset.js
 ```
 
 Import data from 2013Databsae.xlsx and Narrative.xlsx

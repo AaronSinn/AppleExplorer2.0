@@ -9,7 +9,7 @@ const { MongoClient, Double, ObjectId } = require("mongodb");
 const uri = "mongodb://localhost:27017/AppleExplorer"; 
 const client = new MongoClient(uri);
 
-const workbook = xlsx.readFile("RawData/2013Database.xlsx");
+const workbook = xlsx.readFile("../RawData/2013Database.xlsx");
 
 async function updateLengthAndWidth(){
     try {
