@@ -114,12 +114,7 @@
         <!-- Search Bar -->
 
         <select name="search-by" id="search-by">
-          <option value="none">All Columns</option>
-          <option value="species">Species</option>
-          <option value="cultivar name">Cultivar Name</option>
-          <option value="country">Country</option>
-          <option value="state/province">State/Province</option>
-          <option value="city">City</option>
+          <option value="none">All Fields</option>
         </select>
         <div class="search-section">
           <div class="search-bar">
@@ -133,21 +128,27 @@
 
         <!-- View Toggle -->
         <div class="view-toggle">
-          <button id="listViewBtn" class="view-btn active">
-            <span class="dropdown-arrow">▼</span> List View
+          <button id="listViewBtn" class="view-btn active">List View
+            <span id = "view-arrow" class="dropdown-arrow">▼</span> 
           </button>
           <button id="pictureViewBtn" class="view-btn">Picture View</button>
         </div>
 
-        <!-- Filter Button -->
-        <div class="filter-section">
-          <button id="filterBtn" class="filter-btn">🔧</button>
-        </div>
+
 
         <!-- Import/Export Buttons -->
         <div class="import-export">
           <button id="importBtn" class="import-btn">IMPORT FROM DATABASE</button>
           <button id="exportBtn" class="export-btn">EXPORT TO DATABASE</button>
+        </div>
+
+        <!-- Filter Button -->
+        <div class="filter-section">
+          <button id="showHideBtn" class="filter-btn">☑</button>
+        </div>
+
+        <div class="filter-section">
+          <button id="filterBtn" class="filter-btn">🔧</button>
         </div>
       </div>
     </section>
@@ -166,43 +167,21 @@
         </div>
       </div>
     </section>
+    
 
-    <!-- List View Export Controls -->
-    <section id="listExportControls" class="list-export-controls">
+    <!-- Export Controls -->
+    <section id="exportControls" class="picture-export-controls">
       <div class="export-controls-container">
         <div class="sort-controls">
-          <label for="listSortSelect">Sort by:</label>
-          <select id="listSortSelect">
-            <option value="species">Species (A-Z)</option>
-            <option value="cultivar">Cultivar Name (A-Z)</option>
-            <option value="country">Country (A-Z)</option>
-            <option value="state">State/Province (A-Z)</option>
-            <option value="city">City (A-Z)</option>
-          </select>
-          <button id="listSortOrderBtn" class="sort-order-btn" data-order="asc">↑ Ascending</button>
-        </div>
-        <div class="export-buttons">
-          <button id="listExportPdfBtn" class="export-pdf-btn">📄 Export as PDF</button>
-          <button id="listExportCsvBtn" class="export-csv-btn">📊 Export as CSV</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Picture View Export Controls -->
-    <section id="pictureExportControls" class="picture-export-controls" style="display: none;">
-      <div class="export-controls-container">
-        <div class="sort-controls">
-          <label for="sortSelect">Sort by:</label>
+          <label id="sortSelectLabel" for="sortSelect">Sort by:</label>
           <select id="sortSelect">
-            <option value="species">Species (A-Z)</option>
-            <option value="cultivar">Cultivar Name (A-Z)</option>
-            <option value="country">Country (A-Z)</option>
-            <option value="state">State/Province (A-Z)</option>
-            <option value="city">City (A-Z)</option>
           </select>
           <button id="sortOrderBtn" class="sort-order-btn" data-order="asc">↑ Ascending</button>
         </div>
         <div class="export-buttons">
+          <button id="addEntryBtn" class="add-entry-btn">➕ Add</button>
+          <button id="editEntryBtn" class="edit-entry-btn" disabled = "true">✏️  Edit</button>
+          <button id="delEntryBtn" class="del-entry-btn" disabled = "true">🗑️  Delete</button>
           <button id="exportPdfBtn" class="export-pdf-btn">📄 Export as PDF</button>
           <button id="exportCsvBtn" class="export-csv-btn">📊 Export as CSV</button>
         </div>
@@ -213,41 +192,22 @@
     <section id="filterPanel" class="filter-panel" style="display: none;">
       <div class="filter-container">
         <h3>Filter Options</h3>
-        <div class="filter-grid">
-          <div class="filter-group">
-            <label for="speciesFilter">Species:</label>
-            <select id="speciesFilter">
-              <option value="">All Species</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label for="cultivarFilter">Cultivar:</label>
-            <select id="cultivarFilter">
-              <option value="">All Cultivars</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label for="countryFilter">Country:</label>
-            <select id="countryFilter">
-              <option value="">All Countries</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label for="stateFilter">State/Province:</label>
-            <select id="stateFilter">
-              <option value="">All States/Provinces</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label for="cityFilter">City:</label>
-            <select id="cityFilter">
-              <option value="">All Cities</option>
-            </select>
-          </div>
-        </div>
+        <div class="filter-grid" id="fgrid"></div>
         <div class="filter-actions">
           <button id="applyFilters" class="apply-btn">Apply Filters</button>
           <button id="clearFilters" class="clear-btn">Clear All</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Show/Hide Columns (Hidden by default) -->
+    <section id="showHideColumns" class="filter-panel" style="display: none;">
+      <div class="filter-container">
+        <h3>Show/Hide Columns</h3>
+        <div id="column-options-grid" class="filter-grid"></div>
+            <div class="filter-actions">
+          <button id="showAllColumns" class="apply-btn">Show All</button>
+          <button id="hideAllColumns" class="clear-btn">Hide All</button>
         </div>
       </div>
     </section>
@@ -259,32 +219,10 @@
         <div id="listView" class="table-view">
           <table id="dataTable">
             <thead>
-              <tr>
+              <tr id = "table-headers">
                 <th class="checkbox-column">
                   <input type="checkbox" id="selectAll" title="Select All">
                 </th>
-                <th class="sortable" data-column="species">
-                  SPECIES
-                  <span class="sort-arrow">↕</span>
-                </th>
-                <th class="sortable" data-column="cultivar">
-                  CULTIVAR NAME
-                  <span class="sort-arrow">↕</span>
-                </th>
-                <th class="sortable" data-column="country">
-                  COUNTRY OF ORIGIN
-                  <span class="sort-arrow">↕</span>
-                </th>
-                <th class="sortable" data-column="state">
-                  STATE/PROVINCE
-                  <span class="sort-arrow">↕</span>
-                </th>
-                <th class="sortable" data-column="city">
-                  CITY
-                  <span class="sort-arrow">↕</span>
-                </th>
-                <th>IMAGE</th>
-                <th>MORE INFO</th>
               </tr>
             </thead>
             <tbody id="tableBody">
@@ -307,10 +245,7 @@
         </div>
       </div>
 
-      <!-- Add New Entry Button -->
-      <div class="add-entry-section">
-        <button id="addEntryBtn" class="add-entry-btn">+ Add New Entry</button>
-      </div>
+
     </section>
   </main>
 
@@ -339,7 +274,7 @@
       </div>
       <div class="modal-body">
         <form id="entryForm">
-          <div class="form-row">
+          <!--<div class="form-row">
             <div class="form-group">
               <label for="entrySpecies">Species *</label>
               <input type="text" id="entrySpecies" required>
@@ -375,7 +310,7 @@
           <div class="form-group">
             <label for="entryNotes">Additional Notes</label>
             <textarea id="entryNotes" rows="3"></textarea>
-          </div>
+          </div>-->
         </form>
       </div>
       <div class="modal-footer">

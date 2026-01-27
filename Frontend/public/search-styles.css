@@ -255,7 +255,7 @@ main {
   border-radius: 4px;
 }
 
-.filter-btn:hover {
+.filter-btn:hover:not(:disabled) {
   background-color: #564787;
   color: white;
   border-color: #564787;
@@ -344,7 +344,10 @@ main {
 }
 
 .export-pdf-btn,
-.export-csv-btn {
+.export-csv-btn, 
+.add-entry-btn,
+.edit-entry-btn,
+.del-entry-btn {
   padding: 10px 20px;
   border: none;
   border-radius: 4px;
@@ -375,6 +378,22 @@ main {
   background-color: #218838;
 }
 
+
+.add-entry-btn:hover:not(:disabled) {
+  background-color: #218838;
+  color:white;
+}
+
+.edit-entry-btn:hover:not(:disabled) {
+  background-color: #8c8e1d;
+  color:white;
+}
+
+.del-entry-btn:hover:not(:disabled) {
+  background-color: #dc3545;
+  color:white;
+}
+
 /* Filter Panel */
 .filter-panel {
   max-width: 1400px;
@@ -402,7 +421,7 @@ main {
 }
 
 .filter-group label {
-  display: block;
+  display: inline-block;
   margin-bottom: 5px;
   font-weight: bold;
   color: #333;
@@ -411,6 +430,13 @@ main {
 .filter-group select {
   width: 100%;
   padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.show-column-checkbox{
+  margin-right: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
@@ -459,19 +485,19 @@ main {
 .table-container {
   border: 2px solid #333;
   border-radius: 4px;
-  overflow: hidden;
+  overflow: auto;
   background-color: white;
 }
 
 /* Table Styles */
 .table-view table {
-  width: 100%;
   border-collapse: collapse;
 }
 
 .table-view th,
 .table-view td {
-  padding: 15px;
+     white-space: nowrap;
+  padding: 15px;  
   text-align: left;
   border-bottom: 1px solid #ddd;
   border-right: 1px solid #ddd;
@@ -485,9 +511,9 @@ main {
   cursor: pointer;
 }
 
-.table-view th:last-child,
-.table-view td:last-child {
-  border-right: none;
+
+.sortable{
+   white-space: nowrap;
 }
 
 .sortable:hover {
@@ -672,24 +698,9 @@ main {
 
 /* Add Entry Section */
 .add-entry-section {
-  margin-top: 20px;
   text-align: center;
 }
 
-.add-entry-btn {
-  background-color: #28a745;
-  color: white;
-  border: none;
-  padding: 15px 30px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.add-entry-btn:hover {
-  background-color: #218838;
-}
 
 /* Modal Styles */
 .modal {
