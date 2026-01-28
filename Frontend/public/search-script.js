@@ -40,6 +40,7 @@ class SearchListManager{
             ['origin', 'originId'],
             ['profile', 'appleProfileId']
         ])
+        
 
         this.searchDisplayColumn = 'cultivarName'
         this.sortColumn = 'accession';
@@ -59,6 +60,7 @@ class SearchListManager{
         this.selectedItems = new Set();
         this.lastSelectedItem = null;
         this.addOrEdit = null;
+        this.currentImageItem = null;
 
         this.maxDropdownItems = 8;
         this.selectedDropdownItemIndex = -1;
@@ -108,6 +110,8 @@ class SearchListManager{
     }
 
     async loadImageMapping() {
+
+        
         console.log("Loading image mapping...")
         try {
             const response = await fetch('/image-mapping.json');
@@ -389,6 +393,29 @@ class SearchListManager{
                 this.closeModal(e.target.closest('.modal'));
             });
         });
+
+        //Done
+        document.getElementById('saveImage').addEventListener('click', () => {
+            this.saveImage();
+        });
+
+        //Done
+        document.getElementById('cancelImage').addEventListener('click', () => {
+            this.closeModal(document.getElementById('imageModal'));
+        });
+
+        //Done
+        // Image preview
+        document.getElementById('entryImage').addEventListener('change', (e) => {
+            console.log("Entry image");
+            this.previewImage(e.target.files[0], 'imagePreview');
+        });
+
+        //To-do
+        document.getElementById('imageUpload').addEventListener('change', (e) => {
+            console.log('IMG');
+            this.previewImage(e.target.files[0], 'uploadPreview');
+        });
         //Add entry button
         document.getElementById('addEntryBtn').addEventListener('click', () => {
             this.addOrEdit = 'add';
@@ -451,6 +478,33 @@ class SearchListManager{
         document.querySelectorAll('.show-column-checkbox').forEach((checkbox, index) => {
             checkbox.addEventListener('click', (e) => {this.showOrHideColumnUsingCheckbox(checkbox);});
         });
+    }
+
+    processImageFile(file, callback) {
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        this.showNotification('Image size must be less than 5MB', 'error');
+        return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+        callback(e.target.result);
+        };
+        reader.readAsDataURL(file);
+  }
+
+    previewImage(file, previewId) {
+        if (file) {
+        this.processImageFile(file, (imageData) => {
+            const preview = document.getElementById(previewId);
+            preview.src = imageData;
+            preview.style.display = 'block';
+            
+            if (previewId === 'uploadPreview') {
+            document.querySelector('.upload-placeholder').style.display = 'none';
+            }
+        });
+        }
     }
 
     handleSearch(query){
@@ -662,11 +716,11 @@ class SearchListManager{
             // Date
             doc.setFontSize(12);
             doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 20, 30);
-            doc.text(`Total entries: ${exportData.length}`, 20, 40);
+            doc.text(`Total entries: ${exportData.size}`, 20, 40);
             
             let yPosition = 60;
             
-            console.log(`Processing ${exportData.length} entries for PDF...`);
+            console.log(`Processing ${exportData.size} entries for PDF...`);
 
             let index = 0;
 
@@ -685,6 +739,11 @@ class SearchListManager{
                 doc.setFontSize(10);
                 doc.setFont(undefined, 'normal');
                 yPosition += 10;
+
+                if(item.image){
+                    doc.addImage(item.image, 'JPEG', 10, yPosition, 100, 100);
+                    yPosition += 110;
+                }
 
                 this.shownColumnsTableView.forEach(column =>{
                     if(this.getPropertyOfItem(item,column)){
@@ -768,9 +827,28 @@ class SearchListManager{
         const modal = document.getElementById('entryModal');
         const entryForm = document.getElementById('entryForm');
         entryForm.replaceChildren();
+
+
         let formRow;
+
+        let imageRow = document.createElement('div');
+        imageRow.classList.add('form-row');
+        imageRow.innerHTML = '<div class="form-group">' +
+        '<label for="entryImage">Image</label>' +
+        '<input type="file" id="entryImage" accept="image/*">' +
+        '<div class="image-preview">' +
+        '<img id="imagePreview" style="display: none;">' +
+        '</div>' +
+        '</div>';
+        entryForm.appendChild(imageRow);
+        const preview = document.getElementById('imagePreview');
+        if(item && item.image){
+            preview.src = item.image;
+            preview.style.display = 'block';
+        }
+        
+
         const fieldsToDisplay = [...new Set([...this.requiredColumns, ...this.columns])];
-    
         fieldsToDisplay.forEach((column, index) =>{
             if(index % 2 == 0) {
                 formRow = document.createElement('div');
@@ -808,7 +886,7 @@ class SearchListManager{
 
     closeModal(modal) {
         modal.style.display = 'none';
-        this.currentImageUploadId = null;
+        this.currentImageItem = null;
     }
 
     saveEntry(){
@@ -949,31 +1027,6 @@ class SearchListManager{
             records.push(data[recordName]);
         });
         try{
-            /*for(const record of records){
-                const index = records.indexOf(record);
-                const mapin = recordNames[index];
-                const response = await fetch(`http://localhost:3000/${this.mapObjectToFetchID.get(mapin)}`, {
-                    method: 'POST',
-                    headers: {
-                    'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(record)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Failed to create origin: ${errorData.error}`);
-                }
-
-                const result = await response.json();
-                const id = result.data._id;
-
-                delete data[recordNames[index]];
-
-                data[this.mapObjectToAttributeID.get(mapin)] = id;
-            }*/
-
-
             const response = await fetch(`http://localhost:3000/apples/${data._id}`, {
                 method: 'PUT',
                 headers: {
@@ -1027,6 +1080,55 @@ class SearchListManager{
         }
     }
 
+    saveImage() {
+        const imageFile = document.getElementById('imageUpload').files[0];
+        
+        if (!imageFile) {
+            this.showNotification('Please select an image', 'error');
+            return;
+        }
+
+        if (!this.currentImageItem) {
+            this.showNotification('No item selected for image upload', 'error');
+            return;
+        }
+
+        this.processImageFile(imageFile, (imageData) => {
+            this.currentImageItem.image = imageData;
+
+            this.saveAndRefresh();
+            this.closeModal(document.getElementById('imageModal'));
+            this.showNotification('Image uploaded successfully', 'success');
+        });
+    }
+
+    processImageFile(file, callback) {
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            this.showNotification('Image size must be less than 5MB', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            callback(e.target.result);
+        };
+        reader.readAsDataURL(file);
+  }
+
+    saveAndRefresh() {
+        this.saveToStorage();
+        this.filteredData = [...this.data];
+        this.sortData();
+        this.renderData();
+        this.updateFilterColumnOptions();
+        this.closeModal(document.getElementById('entryModal'));
+        this.showNotification('Entry saved successfully', 'success');
+  }
+
+    saveToStorage(){
+        localStorage.setItem('searchListData', JSON.stringify(this.data));
+    }
+
 
     renderTableView(){
         console.log("Rendering table view for " + this.filteredData.length + " apples");
@@ -1056,6 +1158,22 @@ class SearchListManager{
                 this.handleRowSelection(apple, e.target.checked);
             });
             checkboxCell.appendChild(checkbox);
+
+            const imageCell = row.insertCell();
+            imageCell.className = 'image-cell';
+            if (apple.image) {
+                const img = document.createElement('img');
+                img.src = apple.image;
+                img.className = 'table-image';
+                img.onclick = () => this.openImageModal(apple);
+                imageCell.appendChild(img);
+            } else {
+                const uploadBtn = document.createElement('button');
+                uploadBtn.textContent = '+ Add';
+                uploadBtn.className = 'upload-image-btn';
+                uploadBtn.onclick = () => this.openImageModal(apple);
+                imageCell.appendChild(uploadBtn);
+            }
 
             this.columns.forEach(column =>{
                 if(!this.shownColumnsTableView.includes(column)){
@@ -1133,6 +1251,24 @@ class SearchListManager{
         this.appendChildren(card,[imageContainer,content])
         grid.appendChild(card);
         });
+    }
+
+    openImageModal(item){
+        this.currentImageItem = item;
+        const modal = document.getElementById('imageModal');
+        const preview = document.getElementById('uploadPreview');
+        
+        if (item && item.image) {
+            
+            preview.src = item.image;
+            preview.style.display = 'block';
+            document.querySelector('.upload-placeholder').style.display = 'none';
+        } else {
+            preview.style.display = 'none';
+            document.querySelector('.upload-placeholder').style.display = 'block';
+        }
+        
+        modal.style.display = 'block';
     }
 
     //getter functions
@@ -1248,6 +1384,11 @@ class SearchListManager{
         cbc.classList.add('checkbox-column');
         cbc.innerHTML = '<input type="checkbox" id="selectAll" title="Select All">';
         headerRow.appendChild(cbc);
+
+        const colHeadImg = document.createElement('th');
+        colHeadImg.innerHTML = 'Image';
+        headerRow.appendChild(colHeadImg);
+
         this.columns.forEach(item =>{
             if(!this.shownColumnsTableView.includes(item)){
                 return;
@@ -1335,7 +1476,7 @@ class SearchListManager{
                     this.searchableColumns.forEach(column => {
                         if(this.getPropertyOfItem(item,column))
                         {
-                            if(this.getPropertyOfItem(item,column).toLowerCase().includes(query)){
+                            if(this.getPropertyOfItem(item,column).toString().toLowerCase().includes(query)){
                                 this.filteredData.push(item);
                                 return;
                             }
@@ -1359,7 +1500,7 @@ class SearchListManager{
 
     updateFilteredKeywords(query){
         if(this.searchByColumn == 'none'){
-            this.filteredKeywords = this.keywords.filter(k => k.toLowerCase().includes(query))
+            this.filteredKeywords = this.keywords.filter(k => k.toString().toLowerCase().includes(query))
         }
         else{
             const kw = new Set();
