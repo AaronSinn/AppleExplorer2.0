@@ -119,6 +119,7 @@ async function importData() {
         releasedDate: row['RELEASED DATE'] || null,
         releasedDateFormat: row['RELEASED DATE FORMAT'] || null,
         cooperatorNew: row['COOPERATOR_NEW'] || null,
+        imageId: null,
         appleProfileId: profileId,
         physicalAttributesId: attrId,
         originId: originId,
