@@ -14,10 +14,6 @@ const appleProfileSchema = new mongoose.Schema({
   pedigree: {
     type: String,
     trim: true
-  },
-  taxon: {
-    type: String,
-    trim: false
   }
 }, { timestamps: true, collection: "AppleProfile" });
 
