@@ -62,4 +62,10 @@ node server.js
 Go To:
 `http://localhost:3000/LoginPage.html`
 
+## Running the Application
+Helpful Turorials to learn the tech stack
+
+### Express Tutorial
+https://www.youtube.com/watch?v=nH9E25nkk3I
+
 
