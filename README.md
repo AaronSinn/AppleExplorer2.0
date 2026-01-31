@@ -58,12 +58,15 @@ Inside the `Backend` folder run:
 ```bash
 node server.js
 ```
+OR
+```bash
+npm run dev
+```
 
 Go To:
 `http://localhost:3000/LoginPage.html`
 
-## Running the Application
-Helpful Turorials to learn the tech stack
+## Helpful Turorials and Other Websites
 
 ### Express Tutorial
 https://www.youtube.com/watch?v=nH9E25nkk3I
