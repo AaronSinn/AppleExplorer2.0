@@ -102,7 +102,7 @@ app.get("/dashboard", ensureAuth, ensureReadOnly, (req, res) => {
   res.send(`<h1>Welcome, ${req.user.displayName}</h1><p>You have read-only access.</p>`);
 });
 
-// Default route
+// Default route (redirects to index.html via express.static middleware)
 app.get("/", (req, res) => {
   res.send("Apple Explorer API is live!");
 });
@@ -110,6 +110,7 @@ app.get("/", (req, res) => {
 // GET apples with filtering
 app.get("/apples", async (req, res) => {
   try {
+    // Query params (?=)
     const {
       cultivarName,
       accession,
@@ -130,8 +131,10 @@ app.get("/apples", async (req, res) => {
     const results = await Apple.aggregate([
       { $lookup: { from: "Origin", localField: "originId", foreignField: "_id", as: "origin" } },
       { $lookup: { from: "AppleProfile", localField: "appleProfileId", foreignField: "_id", as: "profile" } },
+      { $lookup: { from: "PhysicalAttributes", localField: "physicalAttributesId", foreignField: "_id", as: "physicalAttributes" } },
       { $unwind: { path: "$origin", preserveNullAndEmptyArrays: true } },
       { $unwind: { path: "$profile", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$physicalAttributes", preserveNullAndEmptyArrays: true } },
       {
         $match: {
           ...baseFilter,
@@ -145,21 +148,64 @@ app.get("/apples", async (req, res) => {
       },
       {
         $project: {
+          // IDs & metadata
           _id: 1,
           acno: 1,
           accession: 1,
           cultivarName: 1,
-          harvestDate: 1,
+          labelName: 1,
+          prefix: 1,
+          siteId: 1,
+
+          // Classification
+          plantType: 1,
+          family: 1,
+          taxon: 1,
+          levelOfImprovement: 1,
+
+          // Descriptive fields
           tasteNotes: 1,
           notes: 1,
-          createdAt: 1,
-          updatedAt: 1,
+          habitat: 1,
+          narativeKeyword: 1,
+          fullNarative: 1,
+          pedigreeDescription: 1,
+
+          // Inventory / availability
+          inventoryType: 1,
+          inventoryMaintenancePolicy: 1,
+          maintenancePolicy: 1,
+          availabilityStatus: 1,
+          isDistributable: 1,
+          locationSelection: 1,
+
+          // Dates & ratings
+          harvestDate: 1,
+          firstBloomDate: 1,
+          fullBloomDate: 1,
+          releasedDate: 1,
+          releasedDateFormat: 1,
+          fireblightRating: 1,
+
+          // Legal / cooperation
+          cooperator: 1,
+          cooperatorNew: 1,
+          IPR: 1,
+
+          // References
           appleProfileId: 1,
           physicalAttributesId: 1,
           originId: 1,
-          imageId: 1,  // Include imageId field
+          imageId: 1,
+
+          // Joined docs
           origin: 1,
-          profile: 1
+          profile: 1,
+          physicalAttributes: 1,
+
+          // Timestamps
+          createdAt: 1,
+          updatedAt: 1
         }
       }
     ]);
@@ -387,9 +433,9 @@ app.get("/apples/filters", async (req, res) => {
   try {
     const species = await Apple.distinct("profile.species");
     const cultivarNames = await Apple.distinct("cultivarName");
-    const originCountries = await Apple.distinct("origin.country");
-    const originProvinces = await Apple.distinct("origin.province");
-    const originCities = await Apple.distinct("origin.city");
+    const originCountries = await Origin.distinct("country");
+    const originProvinces = await Origin.distinct("province");
+    const originCities = await Origin.distinct("city");
     res.json({
       species: species.filter(Boolean),
       cultivarNames: cultivarNames.filter(Boolean),

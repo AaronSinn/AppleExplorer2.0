@@ -89,7 +89,7 @@ async function importData() {
         cultivarName: row['CULTIVAR NAME'],
         tasteNotes: row['CMT'] || null,
         notes: row['SITECMT'] || null,
-        siteId: row['SITE'] || null,
+        siteId: row['SITE ID'] || null,
         prefix: row['PREFIX (ACP)'] || null,
         family: row['FAMILY'] || null,
         habitat: row['HABITAT'] || null,
