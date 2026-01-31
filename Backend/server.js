@@ -433,9 +433,9 @@ app.get("/apples/filters", async (req, res) => {
   try {
     const species = await Apple.distinct("profile.species");
     const cultivarNames = await Apple.distinct("cultivarName");
-    const originCountries = await Apple.distinct("origin.country");
-    const originProvinces = await Apple.distinct("origin.province");
-    const originCities = await Apple.distinct("origin.city");
+    const originCountries = await Origin.distinct("country");
+    const originProvinces = await Origin.distinct("province");
+    const originCities = await Origin.distinct("city");
     res.json({
       species: species.filter(Boolean),
       cultivarNames: cultivarNames.filter(Boolean),
