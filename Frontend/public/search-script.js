@@ -26,7 +26,7 @@ class SearchListManager{
             'profile:genus', 'profile:species', 'origin:country', 'origin:province', 'origin:city'
         ]
         this.filterableColumns = [
-            'profile:species', 'cultivarName', 'origin:country', 'origin:province', 'origin:city'
+            'profile:species', 'profile:pedigree', 'cultivarName', 'origin:country', 'origin:province', 'origin:city', 
         ]
         this.requiredColumns = [
             'accession', 'profile:genus', 'profile:species', 'cultivarName', 'origin:country'
@@ -64,6 +64,8 @@ class SearchListManager{
 
         this.maxDropdownItems = 8;
         this.selectedDropdownItemIndex = -1;
+
+        this.currentFilters = [];
 
         this.init();
     }
@@ -130,8 +132,8 @@ class SearchListManager{
             let aSortVal = this.getPropertyOfItem(a,this.sortColumn) || '';
             let bSortVal = this.getPropertyOfItem(b,this.sortColumn) || '';
             if (typeof aSortVal === 'string') {
-                aSortVal = aSortVal.toLowerCase();
-                bSortVal = bSortVal.toLowerCase();
+                aSortVal = aSortVal.toString().toLowerCase();
+                bSortVal = bSortVal.toString().toLowerCase();
             }
             if (this.sortDirection === 'asc') {
                 return aSortVal == '' ? 1 : bSortVal == '' ? -1 : aSortVal < bSortVal ? -1 : aSortVal > bSortVal ? 1 : 0;
@@ -238,6 +240,7 @@ class SearchListManager{
         const filterGrid = document.getElementById('fgrid');
         this.filterableColumns.forEach(column =>{
             
+            return;
             const filterGroupDiv = (document.getElementById(column + 'filterGroupDiv') === null ? document.createElement('div') : document.getElementById(column + 'filterGroupDiv'));
             filterGroupDiv.innerHTML = '';
             const filterLabel = document.createElement('label');
@@ -471,6 +474,15 @@ class SearchListManager{
                     document.getElementById('searchInput').value = this.filteredKeywords[this.selectedDropdownItemIndex];
                 }
             }
+        });
+    }
+
+    bindFilters(){
+        document.querySelectorAll('.filterSelect').forEach(item =>{
+            item.addEventListener('change', () => {
+                this.applyFilters();
+                this.renderData();
+            })
         });
     }
 
@@ -1137,6 +1149,7 @@ class SearchListManager{
         tbody.innerHTML = '';
 
         this.initializeTableHeaders();
+        this.initializeTableFilters();
         if(this.shownColumnsTableView.length == 0)
         {
             tbody.innerText = 'Select at least one column to display data';
@@ -1335,9 +1348,12 @@ class SearchListManager{
 
     applyFilters()
     {
-        const tempApples = this.filteredData.filter(item => {
+        console.log("Applying filters");
+        this.storeFilters();
+        const tempApples = this.data.filter(item => {
             return (this.appleSatisfiesFilters(item))
             });
+        console.log(tempApples.length);
         this.filteredData = [...tempApples];
     }
 
@@ -1350,6 +1366,16 @@ class SearchListManager{
         this.filteredData = [...this.data];
     }
 
+    storeFilters()
+    {
+        const filt = document.querySelectorAll('.filterSelect');
+        this.currentFilters = [];
+        filt.forEach(item =>{
+            this.currentFilters.push(item.value);
+        })
+        console.log("Current filters: " + this.currentFilters);
+    }
+
     appleSatisfiesFilters(item)
     {
         const filters = document.querySelectorAll('.filterSelect');
@@ -1358,13 +1384,13 @@ class SearchListManager{
             if(filter.value == ''){
                 return;
             }
-            const column = this.filterableColumns[index];
+            const column = this.shownColumnsTableView[index];
             if(!this.getPropertyOfItem(item,column))
             {
                 satisfies = false;
                 return;
             }
-            if(!this.getPropertyOfItem(item,column).toLowerCase().includes(filter.value.toLowerCase())){
+            if(!this.getPropertyOfItem(item,column).toString().toLowerCase().includes(filter.value.toLowerCase())){
                 satisfies = false;
                 return;
             }
@@ -1400,6 +1426,83 @@ class SearchListManager{
             (this.sortColumn == item ? (this.sortDirection == 'asc' ? '↑' : '↓') : '↕' ) + '</span>';
             headerRow.appendChild(colHead);
         })
+    }
+
+    async initializeTableFilters(){
+        console.log("Initializing table filters...");
+        const headerRow = document.getElementById('table-filters');
+
+        headerRow.innerHTML = '';
+        if(this.shownColumnsTableView.length == 0)
+        {
+            return;
+        }
+        const cbc = document.createElement('th');
+        cbc.classList.add('checkbox-column');
+        cbc.innerHTML = '<input type="checkbox" id="selectAll" title="Select All">';
+        headerRow.appendChild(cbc);
+
+        const colHeadImg = document.createElement('th');
+        colHeadImg.innerHTML = 'Image';
+        headerRow.appendChild(colHeadImg);
+
+        this.columns.forEach((column) =>{
+
+            if(!this.shownColumnsTableView.includes(column)){
+                return;
+            }
+            const colHead = document.createElement('th');
+            headerRow.appendChild(colHead);
+
+            const filterGroupDiv = (document.getElementById(column + 'filterGroupDiv') === null ? document.createElement('div') : document.getElementById(column + 'filterGroupDiv'));
+            filterGroupDiv.innerHTML = '';
+            const filterSelect = document.createElement('select');
+            const filterOption = document.createElement('option');
+
+            colHead.appendChild(filterGroupDiv);
+
+            filterGroupDiv.setAttribute('id', column + 'filterGroupDiv')
+            filterGroupDiv.classList.add('filter-group');
+            filterGroupDiv.appendChild(filterSelect);
+
+            filterSelect.classList.add('filterSelect');
+            filterSelect.setAttribute('id',column + 'Filter');
+            filterSelect.appendChild(filterOption);
+
+            filterOption.classList.add('filterOption');
+            filterOption.textContent = 'All';
+            filterOption.setAttribute('value', "");
+
+            const kw = new Set();
+            //Populate filters
+            this.filteredData.forEach(item => {
+                if(this.getPropertyOfItem(item,column))
+                {
+                    kw.add(this.getPropertyOfItem(item,column));
+                }
+            });
+            const keywords = Array.from(kw).sort();
+            keywords.forEach(keyword =>{
+                const newOption = document.createElement('option');
+                newOption.textContent = keyword;
+                newOption.setAttribute('value', keyword);
+                filterSelect.appendChild(newOption);
+            })
+
+            let index = this.shownColumnsTableView.indexOf(column);
+            if(this.currentFilters != null && this.currentFilters.length >0){
+                console.log(column + ": " + index + ": " + this.currentFilters[index]);
+                if(this.currentFilters[index] == null){
+                    filterSelect.value = "";
+                }
+                else{
+                    filterSelect.value = this.currentFilters[index];
+                }
+                //console.log(filterSelect.value);
+            }
+
+        })
+        this.bindFilters();
     }
 
     //bound events
