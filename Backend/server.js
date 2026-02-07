@@ -19,6 +19,7 @@ const Origin = require("./models/Origin");
 const AppleProfile = require("./models/AppleProfile");
 const PhysicalAttributes = require("./models/PhysicalAttributes");
 const SearchHistory = require("./models/SearchHistory");
+const Narrative = require("./models/Narrative");
 require("./config/passport")(passport);
 const authRoutes = require("./routes/auth");
 
@@ -269,33 +270,83 @@ app.post("/apples", async (req, res) => {
 app.put("/apples/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const updated = await Apple.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true
-    });
-
-    if (!updated) {
+    const apple = await Apple.findById(id);
+    if (!apple) {
       return res.status(404).json({ error: "Apple not found" });
     }
 
-    res.json({ message: "Apple updated successfully", data: updated });
+    const {
+      profile,
+      origin,
+      physicalAttributes,
+      _id,           // strip out things we don't want to overwrite
+      createdAt,
+      ...appleData   // everything else belongs to Apple
+    } = req.body;
+
+    console.log(req.body);
+
+    // Update related documents
+    await Promise.all([
+      profile &&
+        AppleProfile.findByIdAndUpdate(
+          apple.appleProfileId,
+          profile,
+          { new: true, runValidators: true }
+        ),
+      origin &&
+        Origin.findByIdAndUpdate(
+          apple.originId,
+          origin,
+          { new: true, runValidators: true }
+        ),
+      physicalAttributes &&
+        PhysicalAttributes.findByIdAndUpdate(
+          apple.physicalAttributesId,
+          physicalAttributes,
+          { new: true, runValidators: true }
+        )
+    ]);
+
+    // Set updated date to now
+    appleData.updatedAt = new Date();
+    // Update Apple itself
+    const updatedApple = await Apple.findByIdAndUpdate(
+      id,
+      appleData,
+      {
+        new: true,
+        runValidators: true
+      }
+    );
+
+    res.json({
+      message: "Apple updated successfully",
+      data: updatedApple
+    });
   } catch (err) {
     console.error("Update error:", err);
     res.status(500).json({ error: "Failed to update apple" });
   }
 });
 
-// DELETE an existing apple by ID
+// DELETE an existing apple and it's properties by ID
 app.delete("/apples/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await Apple.findByIdAndDelete(id);
-
-    if (!deleted) {
+    const apple = await Apple.findById(id);
+    if (!apple) {
       return res.status(404).json({ error: "Apple not found" });
     }
 
-    res.json({ message: "Apple deleted successfully", data: deleted });
+    await AppleProfile.findByIdAndDelete(apple.appleProfileId);
+    await PhysicalAttributes.findByIdAndDelete(apple.physicalAttributesId);
+    await Origin.findByIdAndDelete(apple.originId);
+    // Deletes the Narrative by apple's accesion
+    await Narrative.deleteMany({ accession: apple.accession });
+    await Apple.findByIdAndDelete(id);
+
+    res.json({ message: "Apple deleted successfully" });
   } catch (err) {
     console.error("Delete error:", err);
     res.status(500).json({ error: "Failed to delete apple" });
