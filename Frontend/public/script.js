@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const fetchApples = (query = "") => {
     appleList.innerHTML = "<li class='list-group-item'>Loading...</li>";
  
-    fetch("https://appleexplorer.onrender.com/apples" + query)
+    fetch("https://appleexplorer2-0backend.onrender.com/apples" + query)
       .then((response) => {
         if (!response.ok) throw new Error("Network response was not ok");
         return response.json();
