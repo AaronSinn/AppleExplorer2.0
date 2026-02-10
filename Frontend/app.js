@@ -57,4 +57,4 @@ app.get('/', (req, res) => {
   res.send('<a href="/auth/google">Login with Google</a>');
 });
 
-app.listen(3000, () => console.log('Server running on http://localhost:3000'));
+app.listen(3000, () => console.log('Server running on https://appleexplorer2-0backend.onrender.com'));

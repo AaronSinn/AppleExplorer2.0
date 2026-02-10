@@ -64,7 +64,7 @@ npm run dev
 ```
 
 Go To:
-`http://localhost:3000/LoginPage.html`
+`https://appleexplorer2-0backend.onrender.com/LoginPage.html`
 
 ## Helpful Turorials and Other Websites
 
