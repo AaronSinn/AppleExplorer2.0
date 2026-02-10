@@ -84,8 +84,8 @@
                 <button class="edit-photo-btn" style="display: none;">📷</button>
               </div>
               <div class="member-info">
-                <div class="member-name">John Smith</div>
-                <div class="member-title">Senior Researcher</div>
+                <div class="member-name">Kevin Bui</div>
+                <div class="member-title">Frontend</div>
               </div>
               <button class="edit-member-btn" style="display: none;">✏️</button>
             </div>
@@ -95,8 +95,8 @@
                 <button class="edit-photo-btn" style="display: none;">📷</button>
               </div>
               <div class="member-info">
-                <div class="member-name">Sarah Johnson</div>
-                <div class="member-title">Data Analyst</div>
+                <div class="member-name">Maria Aguirre</div>
+                <div class="member-title">Frontend</div>
               </div>
               <button class="edit-member-btn" style="display: none;">✏️</button>
             </div>
@@ -106,44 +106,23 @@
                 <button class="edit-photo-btn" style="display: none;">📷</button>
               </div>
               <div class="member-info">
-                <div class="member-name">Michael Brown</div>
-                <div class="member-title">Project Manager</div>
+                <div class="member-name">Raad Islam</div>
+                <div class="member-title">Frontend/Backend</div>
               </div>
               <button class="edit-member-btn" style="display: none;">✏️</button>
             </div>
             <div class="team-member" data-member-id="3">
               <div class="member-photo">
-                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team4-L9nBELelJSI60zhAMD6mrlQ3WSvfm7.png" alt="Team Member 4" style="width: 100%; height: 100%; object-fit: cover;">
+                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team5-FJZNJHmalCXdVxvI9Fl6l9J6u0pfWo.png" alt="Team Member 4" style="width: 100%; height: 100%; object-fit: cover;">
                 <button class="edit-photo-btn" style="display: none;">📷</button>
               </div>
               <div class="member-info">
-                <div class="member-name">Emily Davis</div>
-                <div class="member-title">Agricultural Specialist</div>
+                <div class="member-name">Aaron Sinn</div>
+                <div class="member-title">Backend</div>
               </div>
               <button class="edit-member-btn" style="display: none;">✏️</button>
             </div>
-            <div class="team-member" data-member-id="4">
-              <div class="member-photo">
-                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team5-FJZNJHmalCXdVxvI9Fl6l9J6u0pfWo.png" alt="Team Member 5" style="width: 100%; height: 100%; object-fit: cover;">
-                <button class="edit-photo-btn" style="display: none;">📷</button>
-              </div>
-              <div class="member-info">
-                <div class="member-name">Robert Wilson</div>
-                <div class="member-title">Research Coordinator</div>
-              </div>
-              <button class="edit-member-btn" style="display: none;">✏️</button>
-            </div>
-            <div class="team-member" data-member-id="5">
-              <div class="member-photo">
-                <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team1-NSu6vBlCr3KcAhukFOpK4NCJruNo6T.png" alt="Team Member 6" style="width: 100%; height: 100%; object-fit: cover;">
-                <button class="edit-photo-btn" style="display: none;">📷</button>
-              </div>
-              <div class="member-info">
-                <div class="member-name">Lisa Anderson</div>
-                <div class="member-title">Quality Assurance</div>
-              </div>
-              <button class="edit-member-btn" style="display: none;">✏️</button>
-            </div>
+           
           </div>
         </div>
 
@@ -184,7 +163,7 @@
         <span>© AGRICULTURAL AND AGRI-FOOD CANADA</span>
       </div>
       <div class="footer-right">
-        <span>TERMS AND CONDITIONS</span>
+        <span id="termsTrigger" style="cursor: pointer;">TERMS AND CONDITIONS</span>
       </div>
     </div>
   </footer>
@@ -272,6 +251,76 @@
       }
     });
   </script>
+  <!-- Contact Form Modal -->
+<div id="contactModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Contact Us</h3>
+      <span class="close" id="contactClose">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form id="contactForm">
+        <div class="form-group">
+          <label for="contactName">Name:</label>
+          <input type="text" id="contactName" placeholder="Enter your name" required>
+        </div>
+        <div class="form-group">
+          <label for="contactEmail">Email:</label>
+          <input type="email" id="contactEmail" placeholder="Enter your email" required>
+        </div>
+        <div class="form-group">
+          <label for="contactMessage">Message:</label>
+          <textarea id="contactMessage" placeholder="Your message" rows="4" required></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="save-btn">Send Message</button>
+          <button type="button" class="cancel-btn" id="contactCancel">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Terms and Conditions Modal -->
+<div id="termsModal" class="modal">
+  <div class="modal-content" style="max-width: 700px;">
+    <div class="modal-header">
+      <h3>Terms and Conditions</h3>
+      <span class="close" id="termsClose">&times;</span>
+    </div>
+
+    <div class="modal-body" style="line-height: 1.6;">
+      <p><strong>Placeholder Terms and Conditions</strong></p>
+
+      <p>
+        The Apple Explorer platform is provided for informational and
+        research purposes only. Data presented may be subject to change
+        and should not be relied upon as the sole basis for commercial
+        or operational decisions.
+      </p>
+
+      <p>
+        Unauthorized use, modification, or redistribution of platform
+        content is prohibited. User access may be revoked at any time
+        for misuse or violation of platform policies.
+      </p>
+
+      <p>
+        Placeholder: Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
+        sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+        Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+        Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="cancel-btn" id="termsCancel">Close</button>
+    </div>
+  </div>
+</div>
+
+
 
   <script src="homepage-script.js"></script>
 </body>

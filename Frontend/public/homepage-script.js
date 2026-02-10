@@ -1,223 +1,67 @@
+// homepage-script.js
+
+// ================================
+// Team Editor
+// ================================
 class TeamEditor {
   constructor() {
     this.isEditMode = false;
     this.currentEditingMember = null;
-    this.teamData = this.loadTeamData();
+
+    this.defaultTeamData = {
+      0: { name: 'Kevin Bui', title: 'Frontend', photo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team1-NSu6vBlCr3KcAhukFOpK4NCJruNo6T.png' },
+      1: { name: 'Maria Aguirre', title: 'Frontend', photo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team2-1bJqSZ6gIQpNqtZOO5TeiJX0rPqGKd.png' },
+      2: { name: 'Raad Islam', title: 'Backend/Frontend', photo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team3-k3us07lTf8vAsRJrvrYHPDariagfWI.png' },
+      3: { name: 'Aaron Sinn', title: 'Backend', photo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team5-FJZNJHmalCXdVxvI9Fl6l9J6u0pfWo.png' }
+    };
+
+    this.teamData = this.loadTeamFromStorage();
+
+    this.canEdit = window.authManager && window.authManager.hasPermission
+      ? window.authManager.hasPermission('edit')
+      : false;
+
     this.init();
+    this.updateTeamDisplay();
   }
 
   init() {
-    this.bindEvents();
-    this.loadTeamFromStorage();
-  }
-
-  bindEvents() {
-    // Edit mode toggle
-    document.getElementById('editModeBtn').addEventListener('click', () => {
-      this.toggleEditMode();
-    });
-
-    // Modal events
-    document.querySelector('.close').addEventListener('click', () => {
-      this.closeModal();
-    });
-
-    document.getElementById('cancelEdit').addEventListener('click', () => {
-      this.closeModal();
-    });
-
-    document.getElementById('saveChanges').addEventListener('click', () => {
-      this.saveChanges();
-    });
-
-    // Photo preview
-    document.getElementById('memberPhoto').addEventListener('change', (e) => {
-      this.previewPhoto(e);
-    });
-
-    // Hidden file input for direct photo editing
-    document.getElementById('hiddenFileInput').addEventListener('change', (e) => {
-      this.handleDirectPhotoChange(e);
-    });
-
-    // Close modal when clicking outside
-    window.addEventListener('click', (e) => {
-      const modal = document.getElementById('editModal');
-      if (e.target === modal) {
-        this.closeModal();
-      }
-    });
-  }
-
-  toggleEditMode() {
-    this.isEditMode = !this.isEditMode;
+    // Edit mode button
     const editBtn = document.getElementById('editModeBtn');
-    const teamMembers = document.querySelectorAll('.team-member');
-    
-    if (this.isEditMode) {
-      editBtn.textContent = 'Exit Edit';
-      editBtn.classList.add('active');
-      
-      teamMembers.forEach(member => {
-        member.classList.add('edit-mode');
-        
-        // Show edit buttons
-        const editBtn = member.querySelector('.edit-member-btn');
-        const photoBtn = member.querySelector('.edit-photo-btn');
-        
-        editBtn.style.display = 'flex';
-        photoBtn.style.display = 'flex';
-        
-        // Add event listeners
-        editBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.openEditModal(member);
-        });
-        
-        photoBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          this.openPhotoSelector(member);
-        });
-      });
-    } else {
-      editBtn.textContent = 'Edit Team';
-      editBtn.classList.remove('active');
-      
-      teamMembers.forEach(member => {
-        member.classList.remove('edit-mode');
-        
-        // Hide edit buttons
-        const editBtn = member.querySelector('.edit-member-btn');
-        const photoBtn = member.querySelector('.edit-photo-btn');
-        
-        editBtn.style.display = 'none';
-        photoBtn.style.display = 'none';
-      });
-    }
-  }
+    if (editBtn) editBtn.addEventListener('click', () => this.toggleEditMode());
 
-  openEditModal(memberElement) {
-    this.currentEditingMember = memberElement;
-    const memberId = memberElement.dataset.memberId;
-    const memberData = this.teamData[memberId];
-    
-    // Populate modal with current data
-    document.getElementById('memberName').value = memberData.name;
-    document.getElementById('memberTitle').value = memberData.title;
-    
-    // Clear photo preview
-    const photoPreview = document.getElementById('photoPreview');
-    photoPreview.style.display = 'none';
-    document.getElementById('memberPhoto').value = '';
-    
-    // Show modal
-    document.getElementById('editModal').style.display = 'block';
-  }
+    // Member edit buttons
+    document.querySelectorAll('.edit-member-btn').forEach(btn =>
+      btn.addEventListener('click', (e) => this.openEditModal(e))
+    );
 
-  openPhotoSelector(memberElement) {
-    this.currentEditingMember = memberElement;
-    const hiddenInput = document.getElementById('hiddenFileInput');
-    hiddenInput.click();
-  }
+    // Photo edit buttons
+    document.querySelectorAll('.edit-photo-btn').forEach(btn =>
+      btn.addEventListener('click', (e) => this.openPhotoEditor(e))
+    );
 
-  handleDirectPhotoChange(event) {
-    const file = event.target.files[0];
-    if (file && this.currentEditingMember) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = this.currentEditingMember.querySelector('.member-photo img');
-        img.src = e.target.result;
-        
-        // Update team data
-        const memberId = this.currentEditingMember.dataset.memberId;
-        this.teamData[memberId].photo = e.target.result;
-        this.saveTeamData();
-      };
-      reader.readAsDataURL(file);
-    }
-  }
+    // Modal buttons
+    const saveBtn = document.getElementById('saveChanges');
+    const cancelBtn = document.getElementById('cancelEdit');
 
-  previewPhoto(event) {
-    const file = event.target.files[0];
-    const preview = document.getElementById('photoPreview');
-    
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        preview.src = e.target.result;
-        preview.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
-    } else {
-      preview.style.display = 'none';
-    }
-  }
+    if (saveBtn) saveBtn.addEventListener('click', () => this.saveChanges());
+    if (cancelBtn) cancelBtn.addEventListener('click', () => this.closeModal());
 
-  saveChanges() {
-    if (!this.currentEditingMember) return;
-    
-    const memberId = this.currentEditingMember.dataset.memberId;
-    const name = document.getElementById('memberName').value.trim();
-    const title = document.getElementById('memberTitle').value.trim();
-    const photoFile = document.getElementById('memberPhoto').files[0];
-    
-    if (!name || !title) {
-      alert('Please fill in both name and title fields.');
-      return;
-    }
-    
-    // Update team data
-    this.teamData[memberId].name = name;
-    this.teamData[memberId].title = title;
-    
-    // Update DOM
-    const nameElement = this.currentEditingMember.querySelector('.member-name');
-    const titleElement = this.currentEditingMember.querySelector('.member-title');
-    
-    nameElement.textContent = name;
-    titleElement.textContent = title;
-    
-    // Handle photo if uploaded
-    if (photoFile) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = this.currentEditingMember.querySelector('.member-photo img');
-        img.src = e.target.result;
-        this.teamData[memberId].photo = e.target.result;
-        this.saveTeamData();
-      };
-      reader.readAsDataURL(photoFile);
-    } else {
-      this.saveTeamData();
-    }
-    
-    this.closeModal();
-    this.showNotification('Team member updated successfully!');
-  }
-
-  closeModal() {
-    document.getElementById('editModal').style.display = 'none';
-    this.currentEditingMember = null;
-  }
-
-  loadTeamData() {
-    // Default team data
-    return {
-      0: { name: 'John Smith', title: 'Senior Researcher', photo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team1-NSu6vBlCr3KcAhukFOpK4NCJruNo6T.png' },
-      1: { name: 'Sarah Johnson', title: 'Data Analyst', photo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team2-1bJqSZ6gIQpNqtZOO5TeiJX0rPqGKd.png' },
-      2: { name: 'Michael Brown', title: 'Project Manager', photo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team3-k3us07lTf8vAsRJrvrYHPDariagfWI.png' },
-      3: { name: 'Emily Davis', title: 'Agricultural Specialist', photo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team4-L9nBELelJSI60zhAMD6mrlQ3WSvfm7.png' },
-      4: { name: 'Robert Wilson', title: 'Research Coordinator', photo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team5-FJZNJHmalCXdVxvI9Fl6l9J6u0pfWo.png' },
-      5: { name: 'Lisa Anderson', title: 'Quality Assurance', photo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team1-NSu6vBlCr3KcAhukFOpK4NCJruNo6T.png' }
-    };
+    // Close modal on "x"
+    const modalClose = document.querySelector('#editModal .close');
+    if (modalClose) modalClose.addEventListener('click', () => this.closeModal());
   }
 
   loadTeamFromStorage() {
     const savedData = localStorage.getItem('teamData');
     if (savedData) {
-      this.teamData = JSON.parse(savedData);
-      this.updateTeamDisplay();
+      try {
+        return JSON.parse(savedData);
+      } catch (e) {
+        console.error('Error parsing team data from storage:', e);
+      }
     }
+    return { ...this.defaultTeamData };
   }
 
   saveTeamData() {
@@ -226,25 +70,121 @@ class TeamEditor {
 
   updateTeamDisplay() {
     Object.keys(this.teamData).forEach(memberId => {
-      const memberElement = document.querySelector(`[data-member-id="${memberId}"]`);
-      if (memberElement) {
-        const data = this.teamData[memberId];
-        
-        memberElement.querySelector('.member-name').textContent = data.name;
-        memberElement.querySelector('.member-title').textContent = data.title;
-        memberElement.querySelector('.member-photo img').src = data.photo;
-      }
+      const memberEl = document.querySelector(`[data-member-id="${memberId}"]`);
+      if (!memberEl) return;
+      const data = this.teamData[memberId];
+      memberEl.querySelector('.member-name').textContent = data.name;
+      memberEl.querySelector('.member-title').textContent = data.title;
+      const imgEl = memberEl.querySelector('.member-photo img');
+      if (imgEl) imgEl.src = data.photo;
     });
   }
 
-  showNotification(message) {
-    // Create notification element
-    const notification = document.createElement('div');
+  toggleEditMode() {
+    if (!this.canEdit) return alert('You do not have permission to edit the team.');
+
+    this.isEditMode = !this.isEditMode;
+    const editBtn = document.getElementById('editModeBtn');
+    const members = document.querySelectorAll('.team-member');
+
+    if (this.isEditMode) {
+      editBtn.textContent = 'Exit Edit';
+      editBtn.classList.add('active');
+      members.forEach(m => {
+        m.classList.add('edit-mode');
+        m.querySelector('.edit-member-btn').style.display = 'flex';
+        m.querySelector('.edit-photo-btn').style.display = 'flex';
+      });
+    } else {
+      editBtn.textContent = 'Edit Team';
+      editBtn.classList.remove('active');
+      members.forEach(m => {
+        m.classList.remove('edit-mode');
+        m.querySelector('.edit-member-btn').style.display = 'none';
+        m.querySelector('.edit-photo-btn').style.display = 'none';
+      });
+    }
+  }
+
+  openEditModal(e) {
+    if (!this.canEdit) return;
+
+    const memberEl = e.target.closest('.team-member');
+    if (!memberEl) return;
+
+    const memberId = memberEl.dataset.memberId;
+    this.currentEditingMember = memberId;
+
+    const memberData = this.teamData[memberId] || {};
+    document.getElementById('memberName').value = memberData.name || '';
+    document.getElementById('memberTitle').value = memberData.title || '';
+    document.getElementById('photoPreview').style.display = 'none';
+
+    document.getElementById('editModal').style.display = 'block';
+  }
+
+  openPhotoEditor(e) {
+    if (!this.canEdit) return;
+
+    const fileInput = document.getElementById('hiddenFileInput');
+    const memberEl = e.target.closest('.team-member');
+    if (!memberEl) return;
+
+    this.currentEditingMember = memberEl.dataset.memberId;
+
+    fileInput.onchange = (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const imgEl = memberEl.querySelector('img');
+        if (imgEl) imgEl.src = ev.target.result;
+
+        this.teamData[this.currentEditingMember] = this.teamData[this.currentEditingMember] || {};
+        this.teamData[this.currentEditingMember].photo = ev.target.result;
+        this.saveTeamData();
+      };
+      reader.readAsDataURL(file);
+    };
+    fileInput.click();
+  }
+
+  closeModal() {
+    document.getElementById('editModal').style.display = 'none';
+  }
+
+  saveChanges() {
+    if (!this.canEdit) return;
+
+    const name = document.getElementById('memberName').value;
+    const title = document.getElementById('memberTitle').value;
+
+    const memberEl = document.querySelector(`[data-member-id="${this.currentEditingMember}"]`);
+    if (memberEl) {
+      memberEl.querySelector('.member-name').textContent = name;
+      memberEl.querySelector('.member-title').textContent = title;
+
+      this.teamData[this.currentEditingMember] = this.teamData[this.currentEditingMember] || {};
+      this.teamData[this.currentEditingMember].name = name;
+      this.teamData[this.currentEditingMember].title = title;
+      this.saveTeamData();
+
+      this.showNotification('Team member updated successfully!');
+      this.updateTeamDisplay();
+    }
+
+    this.closeModal();
+  }
+
+  showNotification(message, type = "success") {
+    const colors = { success: "#28a745", error: "#dc3545", info: "#007bff" };
+    const notification = document.createElement("div");
     notification.style.cssText = `
       position: fixed;
       top: 20px;
       right: 20px;
-      background-color: #28a745;
+      background-color: ${colors[type] || colors.info};
       color: white;
       padding: 15px 20px;
       border-radius: 4px;
@@ -255,331 +195,123 @@ class TeamEditor {
       transition: opacity 0.3s ease;
     `;
     notification.textContent = message;
-    
     document.body.appendChild(notification);
-    
-    // Fade in
+
+    setTimeout(() => notification.style.opacity = "1", 100);
     setTimeout(() => {
-      notification.style.opacity = '1';
-    }, 100);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-      notification.style.opacity = '0';
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 300);
+      notification.style.opacity = "0";
+      setTimeout(() => notification.remove(), 300);
     }, 3000);
   }
 }
 
-// Original functionality from your script
-class ImageSlider {
-  constructor() {
-    this.slides = document.querySelectorAll(".slides img")
-    this.dots = document.querySelectorAll(".dot")
-    this.prevBtn = document.querySelector(".prev")
-    this.nextBtn = document.querySelector(".next")
-    this.currentSlide = 0
-    this.slideInterval = null
-
-    if (this.slides.length > 0) {
-      this.init()
-    }
-  }
-
-  init() {
-    // Add event listeners
-    if (this.prevBtn) this.prevBtn.addEventListener("click", () => this.prevSlide())
-    if (this.nextBtn) this.nextBtn.addEventListener("click", () => this.nextSlide())
-
-    // Add dot navigation
-    this.dots.forEach((dot, index) => {
-      dot.addEventListener("click", () => this.goToSlide(index))
-    })
-
-    // Auto-play slider
-    this.startAutoPlay()
-
-    // Pause on hover
-    const slider = document.querySelector(".slider")
-    if (slider) {
-      slider.addEventListener("mouseenter", () => this.stopAutoPlay())
-      slider.addEventListener("mouseleave", () => this.startAutoPlay())
-    }
-
-    // Keyboard navigation
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowLeft") this.prevSlide()
-      if (e.key === "ArrowRight") this.nextSlide()
-    })
-  }
-
-  updateSlide() {
-    // Update images
-    this.slides.forEach((slide, index) => {
-      slide.classList.toggle("active", index === this.currentSlide)
-    })
-
-    // Update dots (only for actual slides, not all dots)
-    this.dots.forEach((dot, index) => {
-      if (index < this.slides.length) {
-        dot.classList.toggle("active", index === this.currentSlide)
-      }
-    })
-  }
-
-  nextSlide() {
-    this.currentSlide = (this.currentSlide + 1) % this.slides.length
-    this.updateSlide()
-  }
-
-  prevSlide() {
-    this.currentSlide = (this.currentSlide - 1 + this.slides.length) % this.slides.length
-    this.updateSlide()
-  }
-
-  goToSlide(index) {
-    if (index < this.slides.length) {
-      this.currentSlide = index
-      this.updateSlide()
-    }
-  }
-
-  startAutoPlay() {
-    this.slideInterval = setInterval(() => this.nextSlide(), 5000)
-  }
-
-  stopAutoPlay() {
-    if (this.slideInterval) {
-      clearInterval(this.slideInterval)
-      this.slideInterval = null
-    }
-  }
-}
-
-// Smooth scroll functionality
-function smoothScrollToTop() {
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth",
-  })
-}
-
-// Initialize when DOM is loaded
+// ================================
+// DOMContentLoaded: Initialize everything
+// ================================
 document.addEventListener("DOMContentLoaded", () => {
-  // Initialize team editor
-  new TeamEditor();
-  
-  // Initialize slider if it exists
-  new ImageSlider()
+  // Initialize Team Editor
+  window.teamEditor = new TeamEditor();
 
-  // Scroll to top button
-  const scrollTopBtn = document.querySelector(".scroll-top")
-  if (scrollTopBtn) {
-    scrollTopBtn.addEventListener("click", smoothScrollToTop)
+  // Global AppleExplorer for notifications
+  window.AppleExplorer = window.AppleExplorer || {};
+  window.AppleExplorer.showNotification = (msg, type = "info") => window.teamEditor.showNotification(msg, type);
 
-    // Show/hide scroll button based on scroll position
-    window.addEventListener("scroll", () => {
-      if (window.scrollY > 300) {
-        scrollTopBtn.style.display = "block"
-      } else {
-        scrollTopBtn.style.display = "none"
+  // ------------------------
+  // Authentication link update
+  // ------------------------
+  const authLink = document.getElementById('auth-link');
+  const guestActions = document.getElementById('guest-actions');
+  const userActions = document.getElementById('user-actions');
+
+  function updateAuthDisplay() {
+    if (window.authManager && window.authManager.isAuthenticated()) {
+      if (authLink) {
+        authLink.textContent = 'LOGOUT';
+        authLink.href = '#';
+        authLink.onclick = (e) => { e.preventDefault(); window.authManager.logout(); };
       }
-    })
-  }
-
-  // Add smooth scrolling to navigation links
-  document.querySelectorAll('nav a[href^="#"]').forEach((anchor) => {
-    anchor.addEventListener("click", function (e) {
-      e.preventDefault()
-      const target = document.querySelector(this.getAttribute("href"))
-      if (target) {
-        target.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        })
+      if (guestActions) guestActions.style.display = 'none';
+      if (userActions) userActions.style.display = 'block';
+    } else {
+      if (authLink) {
+        authLink.textContent = 'LOGIN';
+        authLink.href = 'LoginPage.html';
+        authLink.onclick = null;
       }
-    })
-  })
-
-  // Add loading animation
-  document.body.style.opacity = "0"
-  setTimeout(() => {
-    document.body.style.transition = "opacity 0.5s ease-in-out"
-    document.body.style.opacity = "1"
-  }, 100)
-
-  // Add hover effects to buttons
-  const buttons = document.querySelectorAll(".action-btn")
-  buttons.forEach((btn) => {
-    btn.addEventListener("mouseenter", function () {
-      this.style.transform = "translateY(-2px)"
-    })
-
-    btn.addEventListener("mouseleave", function () {
-      this.style.transform = "translateY(0)"
-    })
-  })
-
-  // Add click animations
-  buttons.forEach((btn) => {
-    btn.addEventListener("click", function (e) {
-      // Create ripple effect
-      const ripple = document.createElement("span")
-      const rect = this.getBoundingClientRect()
-      const size = Math.max(rect.width, rect.height)
-      const x = e.clientX - rect.left - size / 2
-      const y = e.clientY - rect.top - size / 2
-
-      ripple.style.cssText = `
-        position: absolute;
-        width: ${size}px;
-        height: ${size}px;
-        left: ${x}px;
-        top: ${y}px;
-        background: rgba(255,255,255,0.5);
-        border-radius: 50%;
-        transform: scale(0);
-        animation: ripple 0.6s linear;
-        pointer-events: none;
-      `
-
-      this.style.position = "relative"
-      this.style.overflow = "hidden"
-      this.appendChild(ripple)
-
-      setTimeout(() => ripple.remove(), 600)
-    })
-  })
-
-  // Add fade-in animation to main content
-  const mainContent = document.querySelector("main")
-  if (mainContent) {
-    mainContent.classList.add("fade-in")
-  }
-
-  // Add smooth scrolling for any anchor links
-  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-    anchor.addEventListener("click", function (e) {
-      e.preventDefault()
-      const target = document.querySelector(this.getAttribute("href"))
-      if (target) {
-        target.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        })
-      }
-    })
-  })
-
-  // Add interactive hover effects to team members
-  const teamMembers = document.querySelectorAll(".team-member")
-  teamMembers.forEach((member) => {
-    member.addEventListener("mouseenter", function () {
-      this.style.transform = "translateY(-3px)"
-      this.style.transition = "transform 0.3s ease"
-    })
-
-    member.addEventListener("mouseleave", function () {
-      this.style.transform = "translateY(0)"
-    })
-  })
-
-  // Add navigation active state management
-  const navLinks = document.querySelectorAll("nav a")
-  navLinks.forEach((link) => {
-    link.addEventListener("click", function (e) {
-      // Remove active class from all links
-      navLinks.forEach((l) => l.classList.remove("active"))
-      // Add active class to clicked link
-      this.classList.add("active")
-    })
-  })
-
-  // Add contact us functionality
-  const contactLink = document.querySelector(".footer-left")
-  if (contactLink) {
-    contactLink.addEventListener("click", () => {
-      // Placeholder for contact functionality
-      alert("Contact form would open here")
-    })
-
-    // Make it look clickable
-    contactLink.style.cursor = "pointer"
-  }
-
-  // Add scroll-to-top functionality when clicking header
-  const headerTitle = document.querySelector(".header-left h1")
-  if (headerTitle) {
-    headerTitle.addEventListener("click", () => {
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      })
-    })
-
-    headerTitle.style.cursor = "pointer"
-  }
-
-  // Add responsive navigation toggle for mobile (if needed in future)
-  function handleResize() {
-    const nav = document.querySelector("nav")
-    if (nav) {
-      if (window.innerWidth <= 768) {
-        nav.classList.add("mobile-nav")
-      } else {
-        nav.classList.remove("mobile-nav")
-      }
+      if (guestActions) guestActions.style.display = 'block';
+      if (userActions) userActions.style.display = 'none';
     }
   }
+  updateAuthDisplay();
+  if (window.authManager) setInterval(updateAuthDisplay, 1000);
 
-  window.addEventListener("resize", handleResize)
-  handleResize() // Call on initial load
+  // ------------------------
+  // Contact Modal
+  // ------------------------
+  const contactModal = document.getElementById("contactModal");
+  const contactForm = document.getElementById("contactForm");
+  const contactClose = document.getElementById("contactClose");
+  const contactCancel = document.getElementById("contactCancel");
+  const contactTrigger = document.querySelector(".footer-left");
 
-  // Add loading state management
-  window.addEventListener("load", () => {
-    document.body.classList.add("loaded")
-  })
-
-  // Add keyboard navigation support
-  document.addEventListener("keydown", (e) => {
-    // Tab navigation enhancement
-    if (e.key === "Tab") {
-      document.body.classList.add("keyboard-navigation")
-    }
-  })
-
-  document.addEventListener("mousedown", () => {
-    document.body.classList.remove("keyboard-navigation")
-  })
-})
-
-// Add CSS animation for ripple effect
-const style = document.createElement("style")
-style.textContent = `
-  @keyframes ripple {
-    to {
-      transform: scale(4);
-      opacity: 0;
-    }
+  if (contactTrigger && contactModal) {
+    contactTrigger.style.cursor = "pointer";
+    contactTrigger.addEventListener("click", () => contactModal.style.display = "block");
   }
-`
-document.head.appendChild(style)
 
-// Utility functions
-function showNotification(message, type = "info") {
-  // Future: Could implement toast notifications
-  console.log(`${type.toUpperCase()}: ${message}`)
-}
+  function closeContactModal() {
+    if (contactModal) contactModal.style.display = "none";
+    if (contactForm) contactForm.reset();
+  }
 
-function validateForm(formData) {
-  // Future: Form validation utility
-  return true
-}
+  if (contactClose) contactClose.addEventListener("click", closeContactModal);
+  if (contactCancel) contactCancel.addEventListener("click", closeContactModal);
 
-// Export functions for potential future use
-window.AppleExplorer = {
-  showNotification,
-  validateForm,
-}
+  window.addEventListener("click", (event) => {
+    if (event.target === contactModal) closeContactModal();
+  });
+
+  if (contactForm) {
+    contactForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = document.getElementById("contactName").value.trim();
+      const email = document.getElementById("contactEmail").value.trim();
+      const message = document.getElementById("contactMessage").value.trim();
+
+      if (!name || !email || !message) {
+        window.AppleExplorer.showNotification("Please fill in all fields", "error");
+        return;
+      }
+
+      console.log("Contact Form Submission:", { name, email, message });
+      window.AppleExplorer.showNotification("Your message has been sent!", "success");
+      contactForm.reset();
+      closeContactModal();
+    });
+  }
+
+  // ------------------------
+  // Terms & Conditions Modal
+  // ------------------------
+  const termsModal = document.getElementById("termsModal");
+  const termsTrigger = document.getElementById("termsTrigger");
+  const termsClose = document.getElementById("termsClose");
+  const termsCancel = document.getElementById("termsCancel");
+
+  if (termsTrigger && termsModal) {
+    termsTrigger.style.cursor = "pointer";
+    termsTrigger.addEventListener("click", () => termsModal.style.display = "block");
+  }
+
+  function closeTermsModal() {
+    if (termsModal) termsModal.style.display = "none";
+  }
+
+  if (termsClose) termsClose.addEventListener("click", closeTermsModal);
+  if (termsCancel) termsCancel.addEventListener("click", closeTermsModal);
+
+  window.addEventListener("click", (event) => {
+    if (event.target === termsModal) closeTermsModal();
+  });
+
+});
