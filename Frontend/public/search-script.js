@@ -99,8 +99,7 @@ class SearchListManager{
     async loadApples(){
         console.log("Loading apple data...")
         try{
-            const response = await fetch("https://appleexplorer2-0backend.onrender.com
-/apples");
+            const response = await fetch("http://localhost:3000/apples");
             this.data = await response.json();
             this.filteredData = [...this.data];
             console.log(`Loaded data for ${this.data.length} apples`)
@@ -959,8 +958,7 @@ class SearchListManager{
             for(const record of records){
                 const index = records.indexOf(record);
                 const mapin = recordNames[index];
-                const response = await fetch(`https://appleexplorer2-0backend.onrender.com
-/${this.mapObjectToFetchID.get(mapin)}`, {
+                const response = await fetch(`http://localhost:3000/${this.mapObjectToFetchID.get(mapin)}`, {
                     method: 'POST',
                     headers: {
                     'Content-Type': 'application/json',
@@ -982,8 +980,7 @@ class SearchListManager{
                 data[this.mapObjectToAttributeID.get(mapin)] = id;
             }
 
-            const response = await fetch('https://appleexplorer2-0backend.onrender.com
-/apples', {
+            const response = await fetch('http://localhost:3000/apples', {
                 method: 'POST',
                 headers: {
                 'Content-Type': 'application/json',
@@ -1042,8 +1039,7 @@ class SearchListManager{
             records.push(data[recordName]);
         });
         try{
-            const response = await fetch(`https://appleexplorer2-0backend.onrender.com
-/apples/${data._id}`, {
+            const response = await fetch(`http://localhost:3000/apples/${data._id}`, {
                 method: 'PUT',
                 headers: {
                 'Content-Type': 'application/json',
@@ -1076,8 +1072,7 @@ class SearchListManager{
     async deleteEntry(item){
         const data = this.lastSelectedItem;
         try{
-            const response = await fetch(`https://appleexplorer2-0backend.onrender.com
-/apples/${data._id}`, {
+            const response = await fetch(`http://localhost:3000/apples/${data._id}`, {
                 method: 'DELETE',
                 headers: {
                 'Content-Type': 'application/json',
