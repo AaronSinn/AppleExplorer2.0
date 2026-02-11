@@ -2,9 +2,13 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema({
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true, // allows null for non-Google users
+  },
   fullName: {
     type: String,
-    required: true,
     trim: true
   },
   email: {
@@ -16,7 +20,7 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: function() { return !this.googleId; }, // only required if not using Google
     minlength: 6
   },
   role: {
@@ -53,67 +57,22 @@ const userSchema = new mongoose.Schema({
     default: null
   },
   // Profile Information
-  firstName: {
-    type: String,
-    trim: true
-  },
-  lastName: {
-    type: String,
-    trim: true
-  },
-  phone: {
-    type: String,
-    trim: true
-  },
-  organization: {
-    type: String,
-    trim: true
-  },
-  jobTitle: {
-    type: String,
-    trim: true
-  },
-  department: {
-    type: String,
-    trim: true
-  },
-  interests: {
-    type: String,
-    trim: true
-  },
-  country: {
-    type: String,
-    trim: true
-  },
-  province: {
-    type: String,
-    trim: true
-  },
-  notifications: {
-    type: Boolean,
-    default: true
-  },
-  newsletter: {
-    type: Boolean,
-    default: false
-  },
-  profileCompleted: {
-    type: Boolean,
-    default: false
-  },
+  firstName: { type: String, trim: true },
+  lastName: { type: String, trim: true },
+  phone: { type: String, trim: true },
+  organization: { type: String, trim: true },
+  jobTitle: { type: String, trim: true },
+  department: { type: String, trim: true },
+  interests: { type: String, trim: true },
+  country: { type: String, trim: true },
+  province: { type: String, trim: true },
+  notifications: { type: Boolean, default: true },
+  newsletter: { type: Boolean, default: false },
+  profileCompleted: { type: Boolean, default: false },
   // Security Questions
-  securityQuestion: {
-    type: String,
-    trim: true
-  },
-  securityAnswer: {
-    type: String,
-    trim: true
-  },
-  securityQuestionsCompleted: {
-    type: Boolean,
-    default: false
-  }
+  securityQuestion: { type: String, trim: true },
+  securityAnswer: { type: String, trim: true },
+  securityQuestionsCompleted: { type: Boolean, default: false }
 });
 
 // Hash password before saving
@@ -128,12 +87,12 @@ userSchema.pre("save", async function(next) {
   }
 });
 
-// Method to compare passwords
+// Compare passwords
 userSchema.methods.comparePassword = function(candidate) {
   return bcrypt.compare(candidate, this.password);
 };
 
-// Method to generate verification code
+// Generate verification code
 userSchema.methods.generateVerificationCode = function() {
   const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
   this.verificationCode = code;
@@ -141,7 +100,7 @@ userSchema.methods.generateVerificationCode = function() {
   return code;
 };
 
-// Method to generate password reset token
+// Generate password reset token
 userSchema.methods.generateResetToken = function() {
   const token = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit token
   this.resetPasswordToken = token;
@@ -150,4 +109,3 @@ userSchema.methods.generateResetToken = function() {
 };
 
 module.exports = mongoose.model("User", userSchema);
-
