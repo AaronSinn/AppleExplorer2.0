@@ -58,7 +58,6 @@ class SearchListManager{
         this.filteredKeywords = [];
         this.imageMapping = {};
         this.selectedItems = new Set();
-        this.lastSelectedItem = null;
         this.addOrEdit = null;
         this.currentImageItem = null;
 
@@ -89,7 +88,6 @@ class SearchListManager{
         this.renderSearchableColumnOptions();
         this.renderShownColumnOptions();
         this.renderSortColumnOptions();
-        this.updateFilterColumnOptions();
 
         //bind events
         this.bindEvents();
@@ -169,7 +167,6 @@ class SearchListManager{
     renderData(){
         console.log("Rendering data...");
         this.currentView === 'list' ? this.renderTableView() : this.renderPictureView();
-        this.updateFilterColumnOptions();
         document.getElementById('sortSelectLabel').textContent = `Sorting ${this.filteredData.length} 
             result${this.filteredData.length == 1 ? '' : 's'} by`;
     }
@@ -235,52 +232,7 @@ class SearchListManager{
         })
     }
 
-    updateFilterColumnOptions(){
-        console.log("Rendering filter options...")
-        const filterGrid = document.getElementById('fgrid');
-        this.filterableColumns.forEach(column =>{
-            
-            return;
-            const filterGroupDiv = (document.getElementById(column + 'filterGroupDiv') === null ? document.createElement('div') : document.getElementById(column + 'filterGroupDiv'));
-            filterGroupDiv.innerHTML = '';
-            const filterLabel = document.createElement('label');
-            const filterSelect = document.createElement('select');
-            const filterOption = document.createElement('option');
-
-            filterGrid.appendChild(filterGroupDiv);
-
-            filterGroupDiv.setAttribute('id', column + 'filterGroupDiv')
-            filterGroupDiv.classList.add('filter-group');
-            this.appendChildren(filterGroupDiv,[filterLabel,filterSelect]);
-
-            filterLabel.setAttribute('for', column + 'Filter');
-            filterLabel.textContent = this.getShortColumnName(column);
-
-            filterSelect.classList.add('filterSelect');
-            filterSelect.setAttribute('id',column + 'Filter');
-            filterSelect.appendChild(filterOption);
-
-            filterOption.classList.add('filterOption');
-            filterOption.textContent = 'All';
-            filterOption.setAttribute('value', "");
-
-            const kw = new Set();
-            //Populate filters
-            this.filteredData.forEach(item => {
-                if(this.getPropertyOfItem(item,column))
-                {
-                    kw.add(this.getPropertyOfItem(item,column));
-                }
-            });
-            const keywords = Array.from(kw).sort();
-            keywords.forEach(keyword =>{
-                const newOption = document.createElement('option');
-                newOption.textContent = keyword;
-                newOption.setAttribute('value', keyword);
-                filterSelect.appendChild(newOption);
-            })
-        })
-    }
+   
 
     bindEvents(){
 
@@ -355,11 +307,6 @@ class SearchListManager{
         this.exportToCSV();
         });
 
-        //Filter panel toggle
-        document.getElementById('filterBtn').addEventListener('click', () => {
-            this.toggleFilterPanel();
-        });
-
         //Column panel toggle
         document.getElementById('showHideBtn').addEventListener('click', () => {
             this.toggleColumnPanel();
@@ -431,12 +378,12 @@ class SearchListManager{
                 return;
             }
             this.addOrEdit = 'edit';
-            this.openEntryModal(this.lastSelectedItem);
+            this.openEntryModal(this.selectedItems[0]);
         });
 
         //Delete entry
         document.getElementById('delEntryBtn').addEventListener('click', () => {
-            this.deleteEntry(this.lastSelectedItem);
+            this.deleteEntry();
         });
 
         //Cancel entry
@@ -1011,9 +958,14 @@ class SearchListManager{
     }
 
     async updateEntry(){
+
+        if(this.selectedItems.size !=1){
+            return;
+        }
+
         const entryColumns = [...new Set([...this.requiredColumns, ...this.columns])];
 
-        const data = this.lastSelectedItem;
+        const data = this.this.selectedItems[0];
         
         const entryInputs = document.querySelectorAll('.entry-input');
         const recordNames = [];
@@ -1070,22 +1022,24 @@ class SearchListManager{
     }
 
     async deleteEntry(item){
-        const data = this.lastSelectedItem;
+        if(!window.confirm(`Confirm deleting ${this.selectedItems.size} items?`)){
+            return;
+        }
         try{
-            const response = await fetch(`http://localhost:3000/apples/${data._id}`, {
+            for(const data of this.selectedItems){
+                const response = await fetch(`http://localhost:3000/apples/${data._id}`, {
                 method: 'DELETE',
-                headers: {
-                'Content-Type': 'application/json',
-                },
+                headers: {'Content-Type': 'application/json',},
                 body: JSON.stringify(data)
-            });
-
+                });
+            };
             // Reload the data from the backend to get the updated list
             await this.loadApples();
 
             this.showNotification('Entry deleted!', 'success');
             this.sortData();
             this.renderData();
+            this.selectedItems.clear();
         }catch (error){
             console.error('Error deleting entry:', error);
             this.showNotification(`Error deleting entry: ${error.message}`, 'error');
@@ -1132,7 +1086,6 @@ class SearchListManager{
         this.filteredData = [...this.data];
         this.sortData();
         this.renderData();
-        this.updateFilterColumnOptions();
         this.closeModal(document.getElementById('entryModal'));
         this.showNotification('Entry saved successfully', 'success');
   }
@@ -1349,6 +1302,9 @@ class SearchListManager{
     applyFilters()
     {
         console.log("Applying filters");
+        document.querySelectorAll('.filterSelect').forEach(filter =>{
+            console.log("Filter: " + filter);
+        });
         this.storeFilters();
         const tempApples = this.data.filter(item => {
             return (this.appleSatisfiesFilters(item))
@@ -1372,7 +1328,7 @@ class SearchListManager{
         this.currentFilters = [];
         filt.forEach(item =>{
             this.currentFilters.push(item.value);
-        })
+        });
         console.log("Current filters: " + this.currentFilters);
     }
 
@@ -1431,7 +1387,6 @@ class SearchListManager{
     async initializeTableFilters(){
         console.log("Initializing table filters...");
         const headerRow = document.getElementById('table-filters');
-
         headerRow.innerHTML = '';
         if(this.shownColumnsTableView.length == 0)
         {
@@ -1442,13 +1397,16 @@ class SearchListManager{
         cbc.innerHTML = '<input type="checkbox" id="selectAll" title="Select All">';
         headerRow.appendChild(cbc);
 
-        const colHeadImg = document.createElement('th');
-        colHeadImg.innerHTML = 'Image';
-        headerRow.appendChild(colHeadImg);
+    
 
-        this.columns.forEach((column) =>{
+        headerRow.appendChild(document.createElement('th'));
+        this.columns.forEach((column) =>{this.initializeColumnFilter(column)});
+        this.bindFilters();
+    }
 
-            if(!this.shownColumnsTableView.includes(column)){
+    initializeColumnFilter(column){
+        const headerRow = document.getElementById('table-filters');
+         if(!this.shownColumnsTableView.includes(column)){
                 return;
             }
             const colHead = document.createElement('th');
@@ -1500,10 +1458,8 @@ class SearchListManager{
                 }
                 //console.log(filterSelect.value);
             }
-
-        })
-        this.bindFilters();
     }
+
 
     //bound events
     showOrHideColumnUsingCheckbox(checkbox){
@@ -1514,6 +1470,9 @@ class SearchListManager{
         const column = (checkbox.id.slice(0, checkbox.id.length-8));
         if(checkbox.checked){
             this.shownColumnsTableView.push(column);
+            this.shownColumnsTableView.sort((a,b)=>{
+                return (this.columns.indexOf(a)-this.columns.indexOf(b));
+            })
         }
         else{
             this.shownColumnsTableView.splice(this.shownColumnsTableView.indexOf(column), 1);
@@ -1550,7 +1509,6 @@ class SearchListManager{
     handleRowSelection(item, checked) {
         if (checked) {
             this.selectedItems.add(item);
-            this.lastSelectedItem = item;
         } else {
             this.selectedItems.delete(item);
         }
