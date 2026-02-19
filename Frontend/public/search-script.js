@@ -206,6 +206,7 @@ class SearchListManager{
 
     renderSortColumnOptions(){
         const sortBy = document.getElementById('sortSelect');
+        sortBy.innerHTML = '';
         this.sortableColumns.forEach(column =>{
             const newOption = document.createElement("option");
             sortBy.appendChild(newOption);
@@ -697,12 +698,8 @@ class SearchListManager{
                 // Entry details - only the specific fields requested
                 doc.setFontSize(10);
                 doc.setFont(undefined, 'normal');
+                let storedYPosition = yPosition;
                 yPosition += 10;
-
-                if(item.image){
-                    doc.addImage(item.image, 'JPEG', 10, yPosition, 100, 100);
-                    yPosition += 110;
-                }
 
                 this.shownColumnsTableView.forEach(column =>{
                     if(this.getPropertyOfItem(item,column)){
@@ -713,6 +710,30 @@ class SearchListManager{
                     }
                     yPosition += 7;
                 })
+
+                if(item.image){
+                    console.log(item.image);
+                    const exportImage = new Image();
+                    exportImage.src = item.image;
+
+                    //let exportImageHeight = yPosition-storedYPosition;
+                    //let exportImageWidth = (exportImageHeight/exportImage.height) * exportImage.width;
+
+                    let exportImageHeight = exportImage.height;
+                    let exportImageWidth = exportImage.width;
+                    
+                    while(exportImageHeight > yPosition-storedYPosition || exportImageWidth > doc.internal.pageSize.getWidth()/3){
+                        exportImageHeight*=0.9;
+                        exportImageWidth*=0.9;
+                    }
+                    let exportImageX = (doc.internal.pageSize.getWidth()*0.9)-exportImageWidth;
+                    console.log(yPosition,storedYPosition,exportImageHeight);
+                    let exportImageY = (yPosition-storedYPosition-exportImageHeight)/2 + storedYPosition;
+
+
+                    console.log(exportImageX,exportImageY,exportImageWidth,exportImageHeight);
+                    doc.addImage(item.image, 'JPEG', exportImageX, exportImageY,exportImageWidth,exportImageHeight);             
+                    }
                     
                 yPosition += 10; // Space between entries
             });
@@ -1470,6 +1491,8 @@ class SearchListManager{
         const column = (checkbox.id.slice(0, checkbox.id.length-8));
         if(checkbox.checked){
             this.shownColumnsTableView.push(column);
+            this.sortableColumns.push(column);
+            this.renderSortColumnOptions();
             this.shownColumnsTableView.sort((a,b)=>{
                 return (this.columns.indexOf(a)-this.columns.indexOf(b));
             })
