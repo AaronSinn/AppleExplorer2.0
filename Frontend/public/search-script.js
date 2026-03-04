@@ -166,9 +166,11 @@ class SearchListManager{
 
     renderData(){
         console.log("Rendering data...");
+
         this.currentView === 'list' ? this.renderTableView() : this.renderPictureView();
         document.getElementById('sortSelectLabel').textContent = `Sorting ${this.filteredData.length} 
             result${this.filteredData.length == 1 ? '' : 's'} by`;
+        
     }
 
     toggleColumnPanel(){
@@ -427,11 +429,15 @@ class SearchListManager{
 
     bindFilters(){
         document.querySelectorAll('.filterSelect').forEach(item =>{
-            item.addEventListener('change', () => {
-                this.applyFilters();
-                this.renderData();
+            item.addEventListener('keydown', (e) => {
+                 if(e.key=='Enter'){
+                    this.applyFilters();
+                    this.renderData();
+                 }
+                
             })
         });
+
     }
 
     bindShowColumnCheckboxes(){
@@ -1043,7 +1049,7 @@ class SearchListManager{
     }
 
     async deleteEntry(item){
-        if(!window.confirm(`Confirm deleting ${this.selectedItems.size} items?`)){
+        if(!window.confirm(`Confirm deleting ${this.selectedItems.size} item${this.selectedItems.size > 1 ? 's': ''}?`)){
             return;
         }
         try{
@@ -1417,9 +1423,6 @@ class SearchListManager{
         cbc.classList.add('checkbox-column');
         cbc.innerHTML = '<input type="checkbox" id="selectAll" title="Select All">';
         headerRow.appendChild(cbc);
-
-    
-
         headerRow.appendChild(document.createElement('th'));
         this.columns.forEach((column) =>{this.initializeColumnFilter(column)});
         this.bindFilters();
@@ -1435,7 +1438,45 @@ class SearchListManager{
 
             const filterGroupDiv = (document.getElementById(column + 'filterGroupDiv') === null ? document.createElement('div') : document.getElementById(column + 'filterGroupDiv'));
             filterGroupDiv.innerHTML = '';
-            const filterSelect = document.createElement('select');
+
+            const filterSelect = document.createElement('input');
+            const filterDataList = document.createElement('datalist');
+            filterDataList.setAttribute('id',`${column}FilterDataList`);
+            filterSelect.setAttribute('list',`${column}FilterDataList`);
+            filterSelect.classList.add('filterSelect');
+
+            colHead.appendChild(filterGroupDiv);
+            colHead.appendChild(filterDataList);
+            filterGroupDiv.appendChild(filterSelect);
+
+            const kw = new Set();
+            //Populate filters
+            this.filteredData.forEach(item => {
+                if(this.getPropertyOfItem(item,column))
+                {
+                    kw.add(this.getPropertyOfItem(item,column));
+                }
+            });
+            const keywords = Array.from(kw).sort();
+            keywords.forEach(keyword =>{
+                const newOption = document.createElement('option');
+                newOption.textContent = keyword;
+                newOption.setAttribute('value', keyword);
+                filterDataList.appendChild(newOption);
+            })
+
+            let index = this.shownColumnsTableView.indexOf(column);
+            if(this.currentFilters != null && this.currentFilters.length >0){
+                if(this.currentFilters[index] == null){
+                    filterSelect.value = "";
+                }
+                else{
+                    filterSelect.value = this.currentFilters[index];
+                }
+                //console.log(filterSelect.value);
+            }
+
+            /*const filterSelect = document.createElement('select');
             const filterOption = document.createElement('option');
 
             colHead.appendChild(filterGroupDiv);
@@ -1478,7 +1519,7 @@ class SearchListManager{
                     filterSelect.value = this.currentFilters[index];
                 }
                 //console.log(filterSelect.value);
-            }
+            }*/
     }
 
 
