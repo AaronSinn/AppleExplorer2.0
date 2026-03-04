@@ -723,7 +723,7 @@ class SearchListManager{
         try {
             console.log('Creating PDF document...');
             const doc = new PDFConstructor();
-            const exportData = (this.selectedItems.size == 0 ? this.filterData : Array.from(this.selectedItems));
+            const exportData = (this.selectedItems.size == 0 ? this.filteredData : Array.from(this.selectedItems));
             ///potential fix for export data deploy, convert array
             
             // Title
