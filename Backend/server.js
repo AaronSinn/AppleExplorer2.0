@@ -624,30 +624,6 @@ app.post("/upload-image", imageUpload.single('image'), async (req, res) => {
     res.status(500).json({ error: "Failed to upload image" });
   }
 });
-    // Handle upload completion
-    uploadStream.on('finish', () => {
-      res.json({
-        success: true,
-        imageId: uploadStream.id,
-        filename: filename,
-        originalName: originalname
-      });
-    });
-
-    // Handle upload errors
-    uploadStream.on('error', (error) => {
-      console.error('GridFS upload error:', error);
-      res.status(500).json({ error: "Failed to upload image" });
-    });
-
-    // Upload the image
-    uploadStream.end(buffer);
-
-  } catch (error) {
-    console.error('Image upload error:', error);
-    res.status(500).json({ error: "Failed to upload image" });
-  }
-});
 
 // Image retrieval endpoint
 app.get("/image/:imageId", async (req, res) => {
