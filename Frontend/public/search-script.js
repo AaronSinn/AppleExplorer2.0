@@ -97,19 +97,23 @@ class SearchListManager{
 
     //top-level init functions
     async loadApples(){
-        console.log("Loading apple data...")
-        try{
-            const response = await fetch("https://appleexplorer2-0backend.onrender.com/apples");
-            this.data = await response.json();
-            this.filteredData = [...this.data];
-            console.log(`Loaded data for ${this.data.length} apples`)
-            this.sortData();
-        }catch(err){
-            this.showNotification("Failed to load data from server", "error");
-            this.data = [];
-            this.filteredData = [];
-        }
+    console.log("Loading apple data...")
+    try{
+        const response = await fetch("https://appleexplorer2-0backend.onrender.com/apples");
+        const result = await response.json();
+
+        //  Minimal fix: ensure this.data is an array
+        this.data = Array.isArray(result) ? result : result.data;
+
+        this.filteredData = [...this.data];
+        console.log(`Loaded data for ${this.data.length} apples`)
+        this.sortData();
+    }catch(err){
+        this.showNotification("Failed to load data from server", "error");
+        this.data = [];
+        this.filteredData = [];
     }
+}
 
     async loadImageMapping() {
 
