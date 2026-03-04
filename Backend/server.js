@@ -595,27 +595,35 @@ app.post("/upload-image", imageUpload.single('image'), async (req, res) => {
     const { originalname, mimetype, buffer } = req.file;
     const filename = `${Date.now()}_${originalname}`;
 
+    // Open GridFS upload stream
     const uploadStream = gfs.openUploadStream(filename, {
       metadata: { originalName: originalname, mimetype }
     });
 
-    uploadStream.end(buffer);
-
+    // Handle finish
     uploadStream.on('finish', () => {
-      res.json({ success: true, imageId: uploadStream.id, filename, originalName: originalname });
+      res.json({
+        success: true,
+        imageId: uploadStream.id,
+        filename,
+        originalName: originalname
+      });
     });
 
+    // Handle errors
     uploadStream.on('error', (err) => {
       console.error('GridFS upload error:', err);
       res.status(500).json({ error: "Failed to upload image" });
     });
 
-  } catch (err) {
-    console.error('Image upload error:', err);
+    // Start the upload
+    uploadStream.end(buffer);
+
+  } catch (error) {
+    console.error('Image upload error:', error);
     res.status(500).json({ error: "Failed to upload image" });
   }
 });
-
     // Handle upload completion
     uploadStream.on('finish', () => {
       res.json({
