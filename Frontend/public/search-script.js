@@ -1353,8 +1353,14 @@ class SearchListManager{
     {
         const filt = document.querySelectorAll('.filterSelect');
         this.currentFilters = [];
-        filt.forEach(item =>{
-            this.currentFilters.push(item.value);
+        this.columns.forEach(item =>{
+            const filt = document.getElementById(`${item}FilterSelect`);
+            if(filt){
+                this.currentFilters.push(filt.value);
+            }else{
+                this.currentFilters.push(null);
+            }
+            
         });
         console.log("Current filters: " + this.currentFilters);
     }
@@ -1444,6 +1450,7 @@ class SearchListManager{
             filterDataList.setAttribute('id',`${column}FilterDataList`);
             filterSelect.setAttribute('list',`${column}FilterDataList`);
             filterSelect.classList.add('filterSelect');
+            filterSelect.setAttribute('id',`${column}FilterSelect`);
 
             colHead.appendChild(filterGroupDiv);
             colHead.appendChild(filterDataList);
@@ -1465,16 +1472,15 @@ class SearchListManager{
                 filterDataList.appendChild(newOption);
             })
 
-            let index = this.shownColumnsTableView.indexOf(column);
-            if(this.currentFilters != null && this.currentFilters.length >0){
-                if(this.currentFilters[index] == null){
-                    filterSelect.value = "";
-                }
-                else{
-                    filterSelect.value = this.currentFilters[index];
-                }
-                //console.log(filterSelect.value);
+            let index = this.columns.indexOf(column);
+            if(this.currentFilters[index] == null){
+                filterSelect.value = "";
             }
+            else{
+                filterSelect.value = this.currentFilters[index];
+            }
+                //console.log(filterSelect.value);
+            
 
             /*const filterSelect = document.createElement('select');
             const filterOption = document.createElement('option');
@@ -1540,6 +1546,7 @@ class SearchListManager{
         }
         else{
             this.shownColumnsTableView.splice(this.shownColumnsTableView.indexOf(column), 1);
+            this.s
         }
         this.renderData();
     }
