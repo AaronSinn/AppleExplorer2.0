@@ -791,7 +791,8 @@ class SearchListManager{
         const headers = [...this.shownColumnsTableView];
         let csvContent = headers.join(',') + ('\n');
 
-        const exportData = (this.selectedItems.size == 0 ? this.filterData : this.selectedItems);
+        const exportData = (this.selectedItems.size == 0 ? this.filteredData : Array.from(this.selectedItems));
+        ///potential fix, export csv deploy. similar to fix for exporttopdf
 
         exportData.forEach(item =>{
             this.shownColumnsTableView.forEach((column, index) =>{
