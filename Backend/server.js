@@ -32,7 +32,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 
 // Serve images from the PMP folder
-app.use('/images', express.static(path.join(__dirname, '../public/PMP')));
+//app.use('/images', express.static(path.join(__dirname, '../public/PMP'))); commented out for potential img deploy fix
 
 // Serve frontend files
 app.use(express.static(path.join(__dirname, '../Frontend/public')));
@@ -589,27 +589,32 @@ app.post("/physical-attributes", async (req, res) => {
 // Image upload endpoint
 app.post("/upload-image", imageUpload.single('image'), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No image file provided" });
-    }
-
-    if (!gfs) {
-      return res.status(500).json({ error: "GridFS not initialized" });
-    }
+    if (!req.file) return res.status(400).json({ error: "No image file provided" });
+    if (!gfs) return res.status(500).json({ error: "GridFS not initialized" });
 
     const { originalname, mimetype, buffer } = req.file;
-    
-    // Create a unique filename
     const filename = `${Date.now()}_${originalname}`;
-    
-    // Create a GridFS upload stream
+
     const uploadStream = gfs.openUploadStream(filename, {
-      metadata: {
-        originalName: originalname,
-        mimetype: mimetype,
-        uploadDate: new Date()
-      }
+      metadata: { originalName: originalname, mimetype }
     });
+
+    uploadStream.end(buffer);
+
+    uploadStream.on('finish', () => {
+      res.json({ success: true, imageId: uploadStream.id, filename, originalName: originalname });
+    });
+
+    uploadStream.on('error', (err) => {
+      console.error('GridFS upload error:', err);
+      res.status(500).json({ error: "Failed to upload image" });
+    });
+
+  } catch (err) {
+    console.error('Image upload error:', err);
+    res.status(500).json({ error: "Failed to upload image" });
+  }
+});
 
     // Handle upload completion
     uploadStream.on('finish', () => {
