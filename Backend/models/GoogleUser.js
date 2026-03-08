@@ -1,11 +1,25 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-const userSchema = new mongoose.Schema({
+const googleUserSchema = new mongoose.Schema({
   fullName: {
     type: String,
     required: true,
     trim: true
+  },
+  firstName: {
+    type: String,
+    trim: true
+  },
+  lastName: {
+    type: String,
+    trim: true
+  },
+  googleId:{
+    type: String,
+    required: true,
+    unique: true,
+    sparse: true
   },
   email: {
     type: String,
@@ -13,11 +27,6 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true
-  },
-  password: {
-    type: String,
-    required: true,
-    minlength: 6
   },
   role: {
     type: String,
@@ -52,43 +61,6 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
-  // Profile Information
-  firstName: {
-    type: String,
-    trim: true
-  },
-  lastName: {
-    type: String,
-    trim: true
-  },
-  phone: {
-    type: String,
-    trim: true
-  },
-  organization: {
-    type: String,
-    trim: true
-  },
-  jobTitle: {
-    type: String,
-    trim: true
-  },
-  department: {
-    type: String,
-    trim: true
-  },
-  interests: {
-    type: String,
-    trim: true
-  },
-  country: {
-    type: String,
-    trim: true
-  },
-  province: {
-    type: String,
-    trim: true
-  },
   notifications: {
     type: Boolean,
     default: true
@@ -101,15 +73,6 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  // Security Questions
-  securityQuestion: {
-    type: String,
-    trim: true
-  },
-  securityAnswer: {
-    type: String,
-    trim: true
-  },
   securityQuestionsCompleted: {
     type: Boolean,
     default: false
@@ -117,7 +80,7 @@ const userSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-userSchema.pre("save", async function(next) {
+googleUserSchema.pre("save", async function(next) {
   if (!this.isModified("password")) return;
   try {
     const salt = await bcrypt.genSalt(10);
@@ -129,12 +92,12 @@ userSchema.pre("save", async function(next) {
 });
 
 // Method to compare passwords
-userSchema.methods.comparePassword = function(candidate) {
+googleUserSchema.methods.comparePassword = function(candidate) {
   return bcrypt.compare(candidate, this.password);
 };
 
 // Method to generate verification code
-userSchema.methods.generateVerificationCode = function() {
+googleUserSchema.methods.generateVerificationCode = function() {
   const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
   this.verificationCode = code;
   this.verificationExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
@@ -142,12 +105,12 @@ userSchema.methods.generateVerificationCode = function() {
 };
 
 // Method to generate password reset token
-userSchema.methods.generateResetToken = function() {
+googleUserSchema.methods.generateResetToken = function() {
   const token = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit token
   this.resetPasswordToken = token;
   this.resetPasswordExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
   return token;
 };
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("GoogleUser", googleUserSchema);
 
