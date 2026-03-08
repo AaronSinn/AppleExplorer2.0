@@ -24,7 +24,6 @@ class SignupManager {
                     email: formData.get('email'),
                     password: formData.get('password'),
                     confirmPassword: formData.get('confirmPassword'),
-                    role: formData.get('role')
                 };
                 
                 // Validate form

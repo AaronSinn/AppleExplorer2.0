@@ -57,7 +57,7 @@ router.post('/register', async (req, res) => {
     console.log('🔄 Registration request received');
     console.log('📝 Request body:', req.body);
     
-    const { fullName, email, password, role } = req.body;
+    const { fullName, email, password } = req.body;
 
     // Validation
     if (!fullName || !email || !password) {
@@ -92,8 +92,10 @@ router.post('/register', async (req, res) => {
       fullName: fullName.trim(),
       email: email.toLowerCase().trim(),
       password, 
-      role: role || 'Viewer'
+      role: 'Viewer'
     });
+
+    console.log(user.password);
 
     // Generate verification code
     const verificationCode = user.generateVerificationCode();
@@ -198,7 +200,7 @@ router.post('/login', async (req, res) => {
     // Find user
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      return res.status(400).json({ 
+      return res.status(401).json({ 
         success: false, 
         message: 'Invalid email or password' 
       });
@@ -207,7 +209,7 @@ router.post('/login', async (req, res) => {
     // Check password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      return res.status(400).json({ 
+      return res.status(401).json({ 
         success: false, 
         message: 'Invalid email or password' 
       });
@@ -221,6 +223,10 @@ router.post('/login', async (req, res) => {
         needsVerification: true 
       });
     }
+
+    // Attatch user data to session
+    req.session.visited = true; 
+    req.session.user = user;
 
     // Store previous login time before updating
     const previousLogin = user.lastLogin;
@@ -253,6 +259,15 @@ router.post('/login', async (req, res) => {
       message: 'Server error during login' 
     });
   }
+});
+
+// Used to test a user's session information
+router.get('/status', (req, res) => {
+  req.sessionStore.get(req.sessionID, (err, session) => {
+    console.log(session);
+  });
+  
+  return req.session.user ? res.status(200).send(req.session.user) : res.status(401).send('Not authenticated');  
 });
 
 // Resend verification code

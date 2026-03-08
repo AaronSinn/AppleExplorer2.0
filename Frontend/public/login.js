@@ -17,6 +17,13 @@ class LoginManager {
             loginForm.addEventListener('submit', (e) => this.handleLogin(e));
         }
 
+        const googleLoginButton = document.getElementById('google-login');
+        if (googleLoginButton) {
+            googleLoginButton.addEventListener('click', () => {
+                this.handleGoogleLogin();
+            });
+        }
+
         // Verification form submission (for unverified users)
         const verificationForm = document.getElementById('verification-form');
         if (verificationForm) {
@@ -204,6 +211,10 @@ class LoginManager {
         } finally {
             this.setLoading(false, 'login-button', 'login-text', 'login-loading');
         }
+    }
+
+    async handleGoogleLogin(){
+        window.location.href = '/auth/google';
     }
 
     showVerificationModal() {
