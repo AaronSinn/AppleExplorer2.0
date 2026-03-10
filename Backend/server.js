@@ -125,8 +125,8 @@ app.get("/", (req, res) => {
 
 // GET apples with filtering
 app.get("/apples", async (req, res) => {
-  console.log(req.session);
-  console.log(req.session.id);
+  // console.log(req.session);
+  // console.log(req.session.id);
   try {
     // Query params (?=)
     const {

@@ -51,9 +51,27 @@ class LoginManager {
         }
     }
 
+    parseJwt(token) {
+        if(token === null || token === undefined) return null;
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url
+            .replace(/-/g, '+')
+            .replace(/_/g, '/')
+            .padEnd(base64Url.length + (4 - base64Url.length % 4) % 4, '=');
+
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+            .split('')
+            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join('')
+        );
+
+        return JSON.parse(jsonPayload);
+    }
+
     checkIfAlreadyLoggedIn() {
         const token = localStorage.getItem('authToken');
-        const user = localStorage.getItem('user');
+        const user = this.parseJwt(this.token) || null;
         
         if (token && user) {
             // Verify token is still valid
@@ -69,7 +87,6 @@ class LoginManager {
                         window.authManager.clearAuth();
                     } else {
                         localStorage.removeItem('authToken');
-                        localStorage.removeItem('user');
                     }
                 }
             });
@@ -173,7 +190,7 @@ class LoginManager {
                     password: password
                 })
             });
-
+            
             const data = await response.json();
 
             if (!data.success) {
@@ -190,8 +207,7 @@ class LoginManager {
             if (window.authManager) {
                 window.authManager.setAuth(data.token, data.user);
             } else {
-                localStorage.setItem('authToken', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
+                localStorage.setItem('authToken', data.token);               
             }
 
             // Show success message
@@ -262,7 +278,6 @@ class LoginManager {
                 window.authManager.setAuth(data.token, data.user);
             } else {
                 localStorage.setItem('authToken', data.token);
-                localStorage.setItem('user', JSON.stringify(data.user));
             }
 
             // Show success message
