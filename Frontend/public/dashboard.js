@@ -240,7 +240,7 @@ class DashboardManager {
           const data = await response.json();
           if (data.success && data.user) {
             // Update the stored user data in AuthManager
-            localStorage.setItem('user', JSON.stringify(data.user));
+
             // Refresh the display
             this.updateUserInfo();
           }

@@ -300,7 +300,7 @@ class SignupManager {
 
             // Store authentication token
             localStorage.setItem('authToken', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
+
 
             // Show success message
             this.showMessage('Email verified successfully! Setting up your account...', 'success', 'verification-message-container', 'verification-message-alert');

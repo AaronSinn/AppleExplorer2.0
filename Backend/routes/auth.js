@@ -45,8 +45,18 @@ const sendPasswordResetEmail = async (email, token, fullName) => {
 };
 
 // Generate JWT token
-const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET || 'your-default-secret', {
+const generateToken = (user) => {
+ user ={
+    id: user._id,
+    fullName: user.fullName,
+    email: user.email,
+    role: user.role,
+    isVerified: user.isVerified,
+    createdAt: user.createdAt,
+    lastLogin: user.lastLogin
+  };
+
+  return jwt.sign(user, process.env.JWT_SECRET || 'your-default-secret', {
     expiresIn: '7d'
   });
 };
@@ -94,8 +104,6 @@ router.post('/register', async (req, res) => {
       password, 
       role: 'Viewer'
     });
-
-    console.log(user.password);
 
     // Generate verification code
     const verificationCode = user.generateVerificationCode();
@@ -161,8 +169,8 @@ router.post('/verify-email', async (req, res) => {
     await user.save();
 
     // Generate token
-    const token = generateToken(user._id);
-
+    const token = generateToken(user);
+ 
     res.json({
       success: true,
       message: 'Email verified successfully',
@@ -236,7 +244,8 @@ router.post('/login', async (req, res) => {
     await user.save();
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(user);
+    //const refreshToken = jwt.sign(user.toJSON(), process.env.REFRESH_TOKEN_SECRET)
 
     res.json({
       success: true,
@@ -418,7 +427,7 @@ router.post('/reset-password', async (req, res) => {
 router.get('/profile', async (req, res) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
-    
+
     if (!token) {
       return res.status(401).json({ 
         success: false, 
@@ -427,7 +436,7 @@ router.get('/profile', async (req, res) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-default-secret');
-    const user = await User.findById(decoded.userId).select('-password -verificationCode -resetPasswordToken');
+    const user = await User.findById(decoded.id).select('-password -verificationCode -resetPasswordToken');
 
     if (!user) {
       return res.status(401).json({ 
@@ -485,7 +494,7 @@ router.post('/setup-security-questions', async (req, res) => {
     const hashedAnswer = await bcrypt.hash(answer.toLowerCase().trim(), saltRounds);
 
     const user = await User.findByIdAndUpdate(
-      decoded.userId,
+      decoded.id,
       {
         securityQuestion: question,
         securityAnswer: hashedAnswer,
@@ -544,15 +553,15 @@ router.post('/update-profile', async (req, res) => {
       newsletter
     } = req.body;
 
-    if (!firstName || !lastName || !country) {
+    if (!firstName || !lastName ) {
       return res.status(400).json({
         success: false,
-        message: 'First name, last name, and country are required'
+        message: 'First name and last name are required'
       });
     }
 
     const user = await User.findByIdAndUpdate(
-      decoded.userId,
+      decoded.id,
       {
         firstName,
         lastName,
