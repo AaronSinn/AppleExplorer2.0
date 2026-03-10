@@ -494,7 +494,7 @@ router.post('/setup-security-questions', async (req, res) => {
     const hashedAnswer = await bcrypt.hash(answer.toLowerCase().trim(), saltRounds);
 
     const user = await User.findByIdAndUpdate(
-      decoded.userId,
+      decoded.id,
       {
         securityQuestion: question,
         securityAnswer: hashedAnswer,
