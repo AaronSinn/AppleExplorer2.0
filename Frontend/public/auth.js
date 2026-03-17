@@ -7,6 +7,7 @@ class AuthManager {
     }
 
     init() {
+        this.loadGoogleUserData();
         this.loadStoredAuth();
         // Delay user display update until DOM is ready
         if (document.readyState === 'loading') {
@@ -16,12 +17,39 @@ class AuthManager {
         }
     }
 
+    loadGoogleUserData(){
+        const urlParams = new URLSearchParams(window.location.search);
+        const googleToken = urlParams.get('google_token');
+        if (googleToken) {
+            this.setAuth(googleToken, this.parseJwt(googleToken));
+        }
+        
+    }
+
+    parseJwt(token) {
+        if(token === null || token === undefined) return null;
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url
+            .replace(/-/g, '+')
+            .replace(/_/g, '/')
+            .padEnd(base64Url.length + (4 - base64Url.length % 4) % 4, '=');
+
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+            .split('')
+            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join('')
+        );
+
+        return JSON.parse(jsonPayload);
+    }
+
     loadStoredAuth() {
         this.token = localStorage.getItem('authToken');
-        const userData = localStorage.getItem('user');
+        const userData = this.parseJwt(this.token) || null;
         if (userData) {
             try {
-                this.user = JSON.parse(userData);
+                this.user = userData;
             } catch (error) {
                 console.error('Error parsing user data:', error);
                 this.clearAuth();
@@ -55,7 +83,6 @@ class AuthManager {
                 const data = await response.json();
                 if (data.success) {
                     this.user = data.user;
-                    localStorage.setItem('user', JSON.stringify(this.user));
                     return true;
                 }
             }
@@ -85,7 +112,6 @@ class AuthManager {
         // Store login timestamp for session tracking
         const loginTime = new Date().getTime();
         localStorage.setItem('authToken', token);
-        localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('loginTime', loginTime.toString());
         localStorage.setItem('tokenExpiry', (loginTime + (7 * 24 * 60 * 60 * 1000)).toString()); // 7 days
         
@@ -101,7 +127,6 @@ class AuthManager {
         this.token = null;
         this.user = null;
         localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
         localStorage.removeItem('loginTime');
         localStorage.removeItem('tokenExpiry');
         this.updateUserDisplay();

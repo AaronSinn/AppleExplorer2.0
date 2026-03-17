@@ -45,8 +45,18 @@ const sendPasswordResetEmail = async (email, token, fullName) => {
 };
 
 // Generate JWT token
-const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET || 'your-default-secret', {
+const generateToken = (user) => {
+ user ={
+    id: user._id,
+    fullName: user.fullName,
+    email: user.email,
+    role: user.role,
+    isVerified: user.isVerified,
+    createdAt: user.createdAt,
+    lastLogin: user.lastLogin
+  };
+
+  return jwt.sign(user, process.env.JWT_SECRET || 'your-default-secret', {
     expiresIn: '7d'
   });
 };
@@ -57,7 +67,7 @@ router.post('/register', async (req, res) => {
     console.log('🔄 Registration request received');
     console.log('📝 Request body:', req.body);
     
-    const { fullName, email, password, role } = req.body;
+    const { fullName, email, password } = req.body;
 
     // Validation
     if (!fullName || !email || !password) {
@@ -92,7 +102,7 @@ router.post('/register', async (req, res) => {
       fullName: fullName.trim(),
       email: email.toLowerCase().trim(),
       password, 
-      role: role || 'Viewer'
+      role: 'Viewer'
     });
 
     // Generate verification code
@@ -159,8 +169,8 @@ router.post('/verify-email', async (req, res) => {
     await user.save();
 
     // Generate token
-    const token = generateToken(user._id);
-
+    const token = generateToken(user);
+ 
     res.json({
       success: true,
       message: 'Email verified successfully',
@@ -198,7 +208,7 @@ router.post('/login', async (req, res) => {
     // Find user
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      return res.status(400).json({ 
+      return res.status(401).json({ 
         success: false, 
         message: 'Invalid email or password' 
       });
@@ -207,7 +217,7 @@ router.post('/login', async (req, res) => {
     // Check password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      return res.status(400).json({ 
+      return res.status(401).json({ 
         success: false, 
         message: 'Invalid email or password' 
       });
@@ -222,6 +232,10 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    // Attatch user data to session
+    req.session.visited = true; 
+    req.session.user = user;
+
     // Store previous login time before updating
     const previousLogin = user.lastLogin;
     
@@ -230,7 +244,8 @@ router.post('/login', async (req, res) => {
     await user.save();
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(user);
+    //const refreshToken = jwt.sign(user.toJSON(), process.env.REFRESH_TOKEN_SECRET)
 
     res.json({
       success: true,
@@ -253,6 +268,15 @@ router.post('/login', async (req, res) => {
       message: 'Server error during login' 
     });
   }
+});
+
+// Used to test a user's session information
+router.get('/status', (req, res) => {
+  req.sessionStore.get(req.sessionID, (err, session) => {
+    console.log(session);
+  });
+  
+  return req.session.user ? res.status(200).send(req.session.user) : res.status(401).send('Not authenticated');  
 });
 
 // Resend verification code
@@ -403,7 +427,7 @@ router.post('/reset-password', async (req, res) => {
 router.get('/profile', async (req, res) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
-    
+
     if (!token) {
       return res.status(401).json({ 
         success: false, 
@@ -412,7 +436,7 @@ router.get('/profile', async (req, res) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-default-secret');
-    const user = await User.findById(decoded.userId).select('-password -verificationCode -resetPasswordToken');
+    const user = await User.findById(decoded.id).select('-password -verificationCode -resetPasswordToken');
 
     if (!user) {
       return res.status(401).json({ 
@@ -470,7 +494,7 @@ router.post('/setup-security-questions', async (req, res) => {
     const hashedAnswer = await bcrypt.hash(answer.toLowerCase().trim(), saltRounds);
 
     const user = await User.findByIdAndUpdate(
-      decoded.userId,
+      decoded.id,
       {
         securityQuestion: question,
         securityAnswer: hashedAnswer,
@@ -529,15 +553,15 @@ router.post('/update-profile', async (req, res) => {
       newsletter
     } = req.body;
 
-    if (!firstName || !lastName || !country) {
+    if (!firstName || !lastName ) {
       return res.status(400).json({
         success: false,
-        message: 'First name, last name, and country are required'
+        message: 'First name and last name are required'
       });
     }
 
     const user = await User.findByIdAndUpdate(
-      decoded.userId,
+      decoded.id,
       {
         firstName,
         lastName,

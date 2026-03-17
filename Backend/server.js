@@ -22,14 +22,14 @@ const SearchHistory = require("./models/SearchHistory");
 const Narrative = require("./models/Narrative");
 require("./config/passport")(passport);
 const authRoutes = require("./routes/auth");
+const MongoStore = require("connect-mongo").default;
+const addAdminUser = require("./config/addAdminUser");
+const jwt = require('jsonwebtoken');
 
 const app = express();
 app.use(cors());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-
-// Use authentication routes
-app.use("/api/auth", authRoutes);
 
 // Serve images from the PMP folder
 //app.use('/images', express.static(path.join(__dirname, '../public/PMP'))); commented out for potential img deploy fix
@@ -37,14 +37,40 @@ app.use("/api/auth", authRoutes);
 // Serve frontend files
 app.use(express.static(path.join(__dirname, '../Frontend/public')));
 
+// MongoDB connection
+let gfs;
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("MongoDB connected");
+    // Initialize GridFS
+    const conn = mongoose.connection;
+    gfs = new GridFSBucket(conn.db, { bucketName: 'uploads' });
+    console.log("GridFS initialized");
+  })
+  .catch(err => console.error("MongoDB connection error:", err));
+
 // Session and Passport setup
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24 * 14, // 14 days
+  },
+  store: MongoStore.create({
+    client: mongoose.connection.getClient(),
+  })
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Use authentication routes
+app.use("/api/auth", authRoutes);
+
+// Seed admin user in development mode
+if(process.env.NODE_ENV === "development") {
+  addAdminUser();
+}
 
 // Multer setup for CSV uploads
 const upload = multer({
@@ -65,17 +91,24 @@ const imageUpload = multer({
   }
 });
 
-// MongoDB connection
-let gfs;
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("MongoDB connected");
-    // Initialize GridFS
-    const conn = mongoose.connection;
-    gfs = new GridFSBucket(conn.db, { bucketName: 'uploads' });
-    console.log("GridFS initialized");
-  })
-  .catch(err => console.error("MongoDB connection error:", err));
+// Generate JWT token
+const generateToken = (user) => {
+  profileType = user.googleId ? 'Google' : 'Default';
+  user ={
+      id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      isVerified: user.isVerified,
+      createdAt: user.createdAt,
+      lastLogin: user.lastLogin,
+      profileType: profileType
+    };
+
+    return jwt.sign(user, process.env.JWT_SECRET || 'your-default-secret', {
+      expiresIn: '7d'
+    });
+};
 
 // Google OAuth routes
 app.get("/auth/google",
@@ -85,7 +118,10 @@ app.get("/auth/google",
 app.get("/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/" }),
   (req, res) => {
-    res.redirect("/dashboard.html");
+    console.log(req.session); // Log the session object
+    console.log(req.user); // Log the authenticated user object
+    token = generateToken(req.user);
+    res.redirect(`/dashboard.html?google_token=${token}`);
   }
 );
 
@@ -110,6 +146,8 @@ app.get("/", (req, res) => {
 
 // GET apples with filtering
 app.get("/apples", async (req, res) => {
+  // console.log(req.session);
+  // console.log(req.session.id);
   try {
     // Query params (?=)
     const {

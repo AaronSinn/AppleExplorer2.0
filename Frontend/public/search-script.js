@@ -58,7 +58,6 @@ class SearchListManager{
         this.filteredKeywords = [];
         this.imageMapping = {};
         this.selectedItems = new Set();
-        this.lastSelectedItem = null;
         this.addOrEdit = null;
         this.currentImageItem = null;
 
@@ -67,13 +66,40 @@ class SearchListManager{
 
         this.currentFilters = [];
 
+        this.userRole = "Viewer"; // Default role, will be updated after authentication
+
         this.init();
     }
 
+    parseJwt(token) {
+        if(token === null || token === undefined) return null;
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url
+            .replace(/-/g, '+')
+            .replace(/_/g, '/')
+            .padEnd(base64Url.length + (4 - base64Url.length % 4) % 4, '=');
+
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+            .split('')
+            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join('')
+        );
+
+        return JSON.parse(jsonPayload);
+    }
+
     async init(){
+        const token = localStorage.getItem('authToken');
+        const user = this.parseJwt(token) || null;
+        if (user && user.role) {
+            this.userRole = user.role;
+        }
+    
         console.log("Initializing search list manager...")
         //load data (working)
         await this.loadApples();
+        
 
         //load data (not working)
         await this.loadImageMapping();
@@ -89,7 +115,7 @@ class SearchListManager{
         this.renderSearchableColumnOptions();
         this.renderShownColumnOptions();
         this.renderSortColumnOptions();
-        this.updateFilterColumnOptions();
+
 
         //bind events
         this.bindEvents();
@@ -172,10 +198,11 @@ class SearchListManager{
 
     renderData(){
         console.log("Rendering data...");
+
         this.currentView === 'list' ? this.renderTableView() : this.renderPictureView();
-        this.updateFilterColumnOptions();
         document.getElementById('sortSelectLabel').textContent = `Sorting ${this.filteredData.length} 
             result${this.filteredData.length == 1 ? '' : 's'} by`;
+        
     }
 
     toggleColumnPanel(){
@@ -213,6 +240,7 @@ class SearchListManager{
 
     renderSortColumnOptions(){
         const sortBy = document.getElementById('sortSelect');
+        sortBy.innerHTML = '';
         this.sortableColumns.forEach(column =>{
             const newOption = document.createElement("option");
             sortBy.appendChild(newOption);
@@ -239,52 +267,7 @@ class SearchListManager{
         })
     }
 
-    updateFilterColumnOptions(){
-        console.log("Rendering filter options...")
-        const filterGrid = document.getElementById('fgrid');
-        this.filterableColumns.forEach(column =>{
-            
-            return;
-            const filterGroupDiv = (document.getElementById(column + 'filterGroupDiv') === null ? document.createElement('div') : document.getElementById(column + 'filterGroupDiv'));
-            filterGroupDiv.innerHTML = '';
-            const filterLabel = document.createElement('label');
-            const filterSelect = document.createElement('select');
-            const filterOption = document.createElement('option');
-
-            filterGrid.appendChild(filterGroupDiv);
-
-            filterGroupDiv.setAttribute('id', column + 'filterGroupDiv')
-            filterGroupDiv.classList.add('filter-group');
-            this.appendChildren(filterGroupDiv,[filterLabel,filterSelect]);
-
-            filterLabel.setAttribute('for', column + 'Filter');
-            filterLabel.textContent = this.getShortColumnName(column);
-
-            filterSelect.classList.add('filterSelect');
-            filterSelect.setAttribute('id',column + 'Filter');
-            filterSelect.appendChild(filterOption);
-
-            filterOption.classList.add('filterOption');
-            filterOption.textContent = 'All';
-            filterOption.setAttribute('value', "");
-
-            const kw = new Set();
-            //Populate filters
-            this.filteredData.forEach(item => {
-                if(this.getPropertyOfItem(item,column))
-                {
-                    kw.add(this.getPropertyOfItem(item,column));
-                }
-            });
-            const keywords = Array.from(kw).sort();
-            keywords.forEach(keyword =>{
-                const newOption = document.createElement('option');
-                newOption.textContent = keyword;
-                newOption.setAttribute('value', keyword);
-                filterSelect.appendChild(newOption);
-            })
-        })
-    }
+   
 
     bindEvents(){
 
@@ -359,11 +342,6 @@ class SearchListManager{
         this.exportToCSV();
         });
 
-        //Filter panel toggle
-        document.getElementById('filterBtn').addEventListener('click', () => {
-            this.toggleFilterPanel();
-        });
-
         //Column panel toggle
         document.getElementById('showHideBtn').addEventListener('click', () => {
             this.toggleColumnPanel();
@@ -435,12 +413,12 @@ class SearchListManager{
                 return;
             }
             this.addOrEdit = 'edit';
-            this.openEntryModal(this.lastSelectedItem);
+            this.openEntryModal(this.selectedItems[0]);
         });
 
         //Delete entry
         document.getElementById('delEntryBtn').addEventListener('click', () => {
-            this.deleteEntry(this.lastSelectedItem);
+            this.deleteEntry();
         });
 
         //Cancel entry
@@ -483,11 +461,15 @@ class SearchListManager{
 
     bindFilters(){
         document.querySelectorAll('.filterSelect').forEach(item =>{
-            item.addEventListener('change', () => {
-                this.applyFilters();
-                this.renderData();
+            item.addEventListener('keydown', (e) => {
+                 if(e.key=='Enter'){
+                    this.applyFilters();
+                    this.renderData();
+                 }
+                
             })
         });
+
     }
 
     bindShowColumnCheckboxes(){
@@ -755,12 +737,8 @@ class SearchListManager{
                 // Entry details - only the specific fields requested
                 doc.setFontSize(10);
                 doc.setFont(undefined, 'normal');
+                let storedYPosition = yPosition;
                 yPosition += 10;
-
-                if(item.image){
-                    doc.addImage(item.image, 'JPEG', 10, yPosition, 100, 100);
-                    yPosition += 110;
-                }
 
                 this.shownColumnsTableView.forEach(column =>{
                     if(this.getPropertyOfItem(item,column)){
@@ -771,6 +749,30 @@ class SearchListManager{
                     }
                     yPosition += 7;
                 })
+
+                if(item.image){
+                    console.log(item.image);
+                    const exportImage = new Image();
+                    exportImage.src = item.image;
+
+                    //let exportImageHeight = yPosition-storedYPosition;
+                    //let exportImageWidth = (exportImageHeight/exportImage.height) * exportImage.width;
+
+                    let exportImageHeight = exportImage.height;
+                    let exportImageWidth = exportImage.width;
+                    
+                    while(exportImageHeight > yPosition-storedYPosition || exportImageWidth > doc.internal.pageSize.getWidth()/3){
+                        exportImageHeight*=0.9;
+                        exportImageWidth*=0.9;
+                    }
+                    let exportImageX = (doc.internal.pageSize.getWidth()*0.9)-exportImageWidth;
+                    console.log(yPosition,storedYPosition,exportImageHeight);
+                    let exportImageY = (yPosition-storedYPosition-exportImageHeight)/2 + storedYPosition;
+
+
+                    console.log(exportImageX,exportImageY,exportImageWidth,exportImageHeight);
+                    doc.addImage(item.image, 'JPEG', exportImageX, exportImageY,exportImageWidth,exportImageHeight);             
+                    }
                     
                 yPosition += 10; // Space between entries
             });
@@ -1017,9 +1019,14 @@ class SearchListManager{
     }
 
     async updateEntry(){
+
+        if(this.selectedItems.size !=1){
+            return;
+        }
+
         const entryColumns = [...new Set([...this.requiredColumns, ...this.columns])];
 
-        const data = this.lastSelectedItem;
+        const data = this.this.selectedItems[0];
         
         const entryInputs = document.querySelectorAll('.entry-input');
         const recordNames = [];
@@ -1076,22 +1083,24 @@ class SearchListManager{
     }
 
     async deleteEntry(item){
-        const data = this.lastSelectedItem;
+        if(!window.confirm(`Confirm deleting ${this.selectedItems.size} item${this.selectedItems.size > 1 ? 's': ''}?`)){
+            return;
+        }
         try{
-            const response = await fetch(`https://appleexplorer2-0backend.onrender.com/apples/${data._id}`, {
+            for(const data of this.selectedItems){
+                const response = await fetch(`http://localhost:3000/apples/${data._id}`, {
                 method: 'DELETE',
-                headers: {
-                'Content-Type': 'application/json',
-                },
+                headers: {'Content-Type': 'application/json',},
                 body: JSON.stringify(data)
-            });
-
+                });
+            };
             // Reload the data from the backend to get the updated list
             await this.loadApples();
 
             this.showNotification('Entry deleted!', 'success');
             this.sortData();
             this.renderData();
+            this.selectedItems.clear();
         }catch (error){
             console.error('Error deleting entry:', error);
             this.showNotification(`Error deleting entry: ${error.message}`, 'error');
@@ -1138,7 +1147,6 @@ class SearchListManager{
         this.filteredData = [...this.data];
         this.sortData();
         this.renderData();
-        this.updateFilterColumnOptions();
         this.closeModal(document.getElementById('entryModal'));
         this.showNotification('Entry saved successfully', 'success');
   }
@@ -1191,6 +1199,13 @@ class SearchListManager{
                 uploadBtn.textContent = '+ Add';
                 uploadBtn.className = 'upload-image-btn';
                 uploadBtn.onclick = () => this.openImageModal(apple);
+
+                if(this.userRole === 'Viewer'){
+                    uploadBtn.disabled = true;
+                    uploadBtn.style.cursor = 'not-allowed';
+                    uploadBtn.style.opacity = '0.5';
+                }
+
                 imageCell.appendChild(uploadBtn);
             }
 
@@ -1355,6 +1370,9 @@ class SearchListManager{
     applyFilters()
     {
         console.log("Applying filters");
+        document.querySelectorAll('.filterSelect').forEach(filter =>{
+            console.log("Filter: " + filter);
+        });
         this.storeFilters();
         const tempApples = this.data.filter(item => {
             return (this.appleSatisfiesFilters(item))
@@ -1376,9 +1394,15 @@ class SearchListManager{
     {
         const filt = document.querySelectorAll('.filterSelect');
         this.currentFilters = [];
-        filt.forEach(item =>{
-            this.currentFilters.push(item.value);
-        })
+        this.columns.forEach(item =>{
+            const filt = document.getElementById(`${item}FilterSelect`);
+            if(filt){
+                this.currentFilters.push(filt.value);
+            }else{
+                this.currentFilters.push(null);
+            }
+            
+        });
         console.log("Current filters: " + this.currentFilters);
     }
 
@@ -1437,7 +1461,6 @@ class SearchListManager{
     async initializeTableFilters(){
         console.log("Initializing table filters...");
         const headerRow = document.getElementById('table-filters');
-
         headerRow.innerHTML = '';
         if(this.shownColumnsTableView.length == 0)
         {
@@ -1447,14 +1470,14 @@ class SearchListManager{
         cbc.classList.add('checkbox-column');
         cbc.innerHTML = '<input type="checkbox" id="selectAll" title="Select All">';
         headerRow.appendChild(cbc);
+        headerRow.appendChild(document.createElement('th'));
+        this.columns.forEach((column) =>{this.initializeColumnFilter(column)});
+        this.bindFilters();
+    }
 
-        const colHeadImg = document.createElement('th');
-        colHeadImg.innerHTML = 'Image';
-        headerRow.appendChild(colHeadImg);
-
-        this.columns.forEach((column) =>{
-
-            if(!this.shownColumnsTableView.includes(column)){
+    initializeColumnFilter(column){
+        const headerRow = document.getElementById('table-filters');
+         if(!this.shownColumnsTableView.includes(column)){
                 return;
             }
             const colHead = document.createElement('th');
@@ -1462,7 +1485,45 @@ class SearchListManager{
 
             const filterGroupDiv = (document.getElementById(column + 'filterGroupDiv') === null ? document.createElement('div') : document.getElementById(column + 'filterGroupDiv'));
             filterGroupDiv.innerHTML = '';
-            const filterSelect = document.createElement('select');
+
+            const filterSelect = document.createElement('input');
+            const filterDataList = document.createElement('datalist');
+            filterDataList.setAttribute('id',`${column}FilterDataList`);
+            filterSelect.setAttribute('list',`${column}FilterDataList`);
+            filterSelect.classList.add('filterSelect');
+            filterSelect.setAttribute('id',`${column}FilterSelect`);
+
+            colHead.appendChild(filterGroupDiv);
+            colHead.appendChild(filterDataList);
+            filterGroupDiv.appendChild(filterSelect);
+
+            const kw = new Set();
+            //Populate filters
+            this.filteredData.forEach(item => {
+                if(this.getPropertyOfItem(item,column))
+                {
+                    kw.add(this.getPropertyOfItem(item,column));
+                }
+            });
+            const keywords = Array.from(kw).sort();
+            keywords.forEach(keyword =>{
+                const newOption = document.createElement('option');
+                newOption.textContent = keyword;
+                newOption.setAttribute('value', keyword);
+                filterDataList.appendChild(newOption);
+            })
+
+            let index = this.columns.indexOf(column);
+            if(this.currentFilters[index] == null){
+                filterSelect.value = "";
+            }
+            else{
+                filterSelect.value = this.currentFilters[index];
+            }
+                //console.log(filterSelect.value);
+            
+
+            /*const filterSelect = document.createElement('select');
             const filterOption = document.createElement('option');
 
             colHead.appendChild(filterGroupDiv);
@@ -1505,11 +1566,9 @@ class SearchListManager{
                     filterSelect.value = this.currentFilters[index];
                 }
                 //console.log(filterSelect.value);
-            }
-
-        })
-        this.bindFilters();
+            }*/
     }
+
 
     //bound events
     showOrHideColumnUsingCheckbox(checkbox){
@@ -1520,9 +1579,15 @@ class SearchListManager{
         const column = (checkbox.id.slice(0, checkbox.id.length-8));
         if(checkbox.checked){
             this.shownColumnsTableView.push(column);
+            this.sortableColumns.push(column);
+            this.renderSortColumnOptions();
+            this.shownColumnsTableView.sort((a,b)=>{
+                return (this.columns.indexOf(a)-this.columns.indexOf(b));
+            })
         }
         else{
             this.shownColumnsTableView.splice(this.shownColumnsTableView.indexOf(column), 1);
+            this.s
         }
         this.renderData();
     }
@@ -1556,7 +1621,6 @@ class SearchListManager{
     handleRowSelection(item, checked) {
         if (checked) {
             this.selectedItems.add(item);
-            this.lastSelectedItem = item;
         } else {
             this.selectedItems.delete(item);
         }
@@ -1568,9 +1632,9 @@ class SearchListManager{
         const editEntryBtn = document.getElementById('editEntryBtn');
         const deleteEntryBtn = document.getElementById('delEntryBtn');
 
-        addEntryBtn.disabled = (size > 0);
-        editEntryBtn.disabled = (size != 1);
-        deleteEntryBtn.disabled = (size == 0);
+        addEntryBtn.disabled = (size > 0 || this.userRole === 'Viewer');
+        editEntryBtn.disabled = (size != 1 || this.userRole === 'Viewer');
+        deleteEntryBtn.disabled = (size == 0 || this.userRole === 'Viewer');
     }
 
     filterData(query){
@@ -1633,5 +1697,23 @@ class SearchListManager{
 }   
 
 document.addEventListener('DOMContentLoaded', () => {
-    new SearchListManager();
+    const searchListManager = new SearchListManager();
+
+    // Disable add/edit/delete/import buttons for viewers
+    if(searchListManager.userRole === 'Viewer'){
+        const addEntryBtn = document.getElementById('addEntryBtn');
+        const editEntryBtn = document.getElementById('editEntryBtn');
+        const deleteEntryBtn = document.getElementById('delEntryBtn');
+        const importBtn = document.getElementById('importBtn');
+        
+        addEntryBtn.disabled = true;
+        editEntryBtn.disabled = true;
+        deleteEntryBtn.disabled = true;
+        importBtn.disabled = true;
+        addEntryBtn.style.cursor = 'not-allowed';
+        editEntryBtn.style.cursor = 'not-allowed';
+        deleteEntryBtn.style.cursor = 'not-allowed';
+        importBtn.style.cursor = 'not-allowed';
+        importBtn.style.pointerEvents = "none";
+    }
 });

@@ -1,5 +1,5 @@
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const User = require('../models/User');
+const users = require('../models/User');
 
 module.exports = function(passport) {
   passport.use(
@@ -10,32 +10,37 @@ module.exports = function(passport) {
         callbackURL: process.env.GOOGLE_CALLBACK_URL,
       },
       async (accessToken, refreshToken, profile, done) => {
-        try {
-          const existingUser = await User.findOne({ googleId: profile.id });
-          if (existingUser) return done(null, existingUser);
-
-          // If no existing user, create new
-          const newUser = await User.create({
-            googleId: profile.id,
-            fullName: profile.displayName,
-            email: profile.emails[0].value,
-            // Optional: can also populate firstName / lastName
-            firstName: profile.name?.givenName || '',
-            lastName: profile.name?.familyName || '',
-            password: null // no password for Google users
-          });
-
-          done(null, newUser);
+        let existingUser;
+        try{
+          existingUser = await users.findOne({ googleId: profile.id });
         } catch (err) {
-          console.error('Google OAuth error:', err);
-          done(err, null);
+          return done(err, null);
         }
+        
+        try{
+          if (existingUser) return done(null, existingUser);
+          const uuid = crypto.randomUUID();
+          const newUser = new users({
+            googleId: profile.id,
+            displayName: profile.displayName,
+            email: profile.emails[0].value,
+            fullName: profile.displayName,
+            firstName: profile.name.givenName,
+            lastName: profile.name.familyName,
+            password: uuid
+          });
+          // console.log('New Google User:', newUser);
+          const newSavedUser = await newUser.save();
+          done(null, newSavedUser);
+        }catch (err) {
+          console.log(err);
+          return done(err, null);
+        }
+
       }
     )
   );
 
   passport.serializeUser((user, done) => done(null, user.id));
-  passport.deserializeUser((id, done) =>
-    User.findById(id).then(user => done(null, user)).catch(err => done(err, null))
-  );
+  passport.deserializeUser((id, done) => users.findById(id).then(user => done(null, user)));
 };
