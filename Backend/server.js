@@ -24,6 +24,7 @@ require("./config/passport")(passport);
 const authRoutes = require("./routes/auth");
 const MongoStore = require("connect-mongo").default;
 const addAdminUser = require("./config/addAdminUser");
+const jwt = require('jsonwebtoken');
 
 const app = express();
 app.use(cors());
@@ -90,6 +91,25 @@ const imageUpload = multer({
   }
 });
 
+// Generate JWT token
+const generateToken = (user) => {
+  profileType = user.googleId ? 'Google' : 'Default';
+  user ={
+      id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      isVerified: user.isVerified,
+      createdAt: user.createdAt,
+      lastLogin: user.lastLogin,
+      profileType: profileType
+    };
+
+    return jwt.sign(user, process.env.JWT_SECRET || 'your-default-secret', {
+      expiresIn: '7d'
+    });
+};
+
 // Google OAuth routes
 app.get("/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
@@ -100,7 +120,8 @@ app.get("/auth/google/callback",
   (req, res) => {
     console.log(req.session); // Log the session object
     console.log(req.user); // Log the authenticated user object
-    res.redirect("/dashboard.html");
+    token = generateToken(req.user);
+    res.redirect(`/dashboard.html?google_token=${token}`);
   }
 );
 
