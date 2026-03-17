@@ -66,13 +66,40 @@ class SearchListManager{
 
         this.currentFilters = [];
 
+        this.userRole = "Viewer"; // Default role, will be updated after authentication
+
         this.init();
     }
 
+    parseJwt(token) {
+        if(token === null || token === undefined) return null;
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url
+            .replace(/-/g, '+')
+            .replace(/_/g, '/')
+            .padEnd(base64Url.length + (4 - base64Url.length % 4) % 4, '=');
+
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+            .split('')
+            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+            .join('')
+        );
+
+        return JSON.parse(jsonPayload);
+    }
+
     async init(){
+        const token = localStorage.getItem('authToken');
+        const user = this.parseJwt(token) || null;
+        if (user && user.role) {
+            this.userRole = user.role;
+        }
+    
         console.log("Initializing search list manager...")
         //load data (working)
         await this.loadApples();
+        
 
         //load data (not working)
         await this.loadImageMapping();
@@ -88,6 +115,7 @@ class SearchListManager{
         this.renderSearchableColumnOptions();
         this.renderShownColumnOptions();
         this.renderSortColumnOptions();
+
 
         //bind events
         this.bindEvents();
@@ -1165,6 +1193,13 @@ class SearchListManager{
                 uploadBtn.textContent = '+ Add';
                 uploadBtn.className = 'upload-image-btn';
                 uploadBtn.onclick = () => this.openImageModal(apple);
+
+                if(this.userRole === 'Viewer'){
+                    uploadBtn.disabled = true;
+                    uploadBtn.style.cursor = 'not-allowed';
+                    uploadBtn.style.opacity = '0.5';
+                }
+
                 imageCell.appendChild(uploadBtn);
             }
 
@@ -1591,9 +1626,9 @@ class SearchListManager{
         const editEntryBtn = document.getElementById('editEntryBtn');
         const deleteEntryBtn = document.getElementById('delEntryBtn');
 
-        addEntryBtn.disabled = (size > 0);
-        editEntryBtn.disabled = (size != 1);
-        deleteEntryBtn.disabled = (size == 0);
+        addEntryBtn.disabled = (size > 0 || this.userRole === 'Viewer');
+        editEntryBtn.disabled = (size != 1 || this.userRole === 'Viewer');
+        deleteEntryBtn.disabled = (size == 0 || this.userRole === 'Viewer');
     }
 
     filterData(query){
@@ -1656,5 +1691,23 @@ class SearchListManager{
 }   
 
 document.addEventListener('DOMContentLoaded', () => {
-    new SearchListManager();
+    const searchListManager = new SearchListManager();
+
+    // Disable add/edit/delete/import buttons for viewers
+    if(searchListManager.userRole === 'Viewer'){
+        const addEntryBtn = document.getElementById('addEntryBtn');
+        const editEntryBtn = document.getElementById('editEntryBtn');
+        const deleteEntryBtn = document.getElementById('delEntryBtn');
+        const importBtn = document.getElementById('importBtn');
+        
+        addEntryBtn.disabled = true;
+        editEntryBtn.disabled = true;
+        deleteEntryBtn.disabled = true;
+        importBtn.disabled = true;
+        addEntryBtn.style.cursor = 'not-allowed';
+        editEntryBtn.style.cursor = 'not-allowed';
+        deleteEntryBtn.style.cursor = 'not-allowed';
+        importBtn.style.cursor = 'not-allowed';
+        importBtn.style.pointerEvents = "none";
+    }
 });

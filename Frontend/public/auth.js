@@ -7,6 +7,7 @@ class AuthManager {
     }
 
     init() {
+        this.loadGoogleUserData();
         this.loadStoredAuth();
         // Delay user display update until DOM is ready
         if (document.readyState === 'loading') {
@@ -14,6 +15,15 @@ class AuthManager {
         } else {
             this.updateUserDisplay();
         }
+    }
+
+    loadGoogleUserData(){
+        const urlParams = new URLSearchParams(window.location.search);
+        const googleToken = urlParams.get('google_token');
+        if (googleToken) {
+            this.setAuth(googleToken, this.parseJwt(googleToken));
+        }
+        
     }
 
     parseJwt(token) {
