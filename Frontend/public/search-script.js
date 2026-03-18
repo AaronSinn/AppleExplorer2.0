@@ -1077,9 +1077,33 @@ class SearchListManager{
     }
 
     async deleteEntry(item){
-        if(!window.confirm(`Confirm deleting ${this.selectedItems.size} item${this.selectedItems.size > 1 ? 's': ''}?`)){
-            return;
+        this.confirmDeletion(item,`Confirm deleting ${this.selectedItems.size} item${this.selectedItems.size > 1 ? 's': ''}?`);
+    }
+
+    async confirmDeletion(item, message){
+        const span = document.getElementById("confirmDeletionSpan");
+        span.textContent = message;
+        span.style.display = 'block';
+
+        const yesBtn = document.getElementById("yesButton");
+        const noBtn = document.getElementById("noButton");
+        yesBtn.style.display = 'block';
+        noBtn.style.display = 'block';
+
+        yesBtn.addEventListener('click', (e) => {
+            span.style.display = 'none';
+            yesBtn.style.display = 'none';
+            noBtn.style.display = 'none';
+            this.finishDeletion(item);
+         });
+        noBtn.onclick = () => {
+            span.style.display = 'none';
+            yesBtn.style.display = 'none';
+            noBtn.style.display = 'none';
         }
+    }
+
+    async finishDeletion(item){
         try{
             for(const data of this.selectedItems){
                 const response = await fetch(`http://localhost:3000/apples/${data._id}`, {
@@ -1483,13 +1507,14 @@ class SearchListManager{
             const filterSelect = document.createElement('input');
             const filterDataList = document.createElement('datalist');
             filterDataList.setAttribute('id',`${column}FilterDataList`);
+            filterSelect.setAttribute('placeholder',"All");
             filterSelect.setAttribute('list',`${column}FilterDataList`);
             filterSelect.classList.add('filterSelect');
             filterSelect.setAttribute('id',`${column}FilterSelect`);
 
             colHead.appendChild(filterGroupDiv);
             colHead.appendChild(filterDataList);
-            filterGroupDiv.appendChild(filterSelect);
+            filterGroupDiv.appendChild(filterSelect);       
 
             const kw = new Set();
             //Populate filters

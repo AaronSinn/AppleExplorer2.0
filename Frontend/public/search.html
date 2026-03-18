@@ -119,7 +119,7 @@
         <div class="search-section">
           <div class="search-bar">
             <input type="text" id="searchInput" placeholder="SEARCH" autocomplete="off" />
-            <button class="search-btn">🔍</button>
+            <button class="search-btn" title="Search database">🔍</button>
 
             <!-- Suggestion dropdown -->
              <div id = "suggestionsBox" class = "suggestions-box" style= "display:none;"></div>
@@ -128,23 +128,23 @@
 
         <!-- View Toggle -->
         <div class="view-toggle">
-          <button id="listViewBtn" class="view-btn active">List View
+          <button id="listViewBtn" class="view-btn active" title="Display database as list">List View
             <span id = "view-arrow" class="dropdown-arrow">▼</span> 
           </button>
-          <button id="pictureViewBtn" class="view-btn">Picture View</button>
+          <button id="pictureViewBtn" class="view-btn" title="Display database as images">Picture View</button>
         </div>
 
 
 
         <!-- Import/Export Buttons -->
         <div class="import-export">
-          <button id="importBtn" class="import-btn">IMPORT FROM DATABASE</button>
-          <button id="exportBtn" class="export-btn">EXPORT TO DATABASE</button>
+          <button id="importBtn" class="import-btn" title="Import database from JSON file">RESTORE FROM BACKUP</button>
+          <button id="exportBtn" class="export-btn" title="Export database to JSON file">CREATE DATABASE BACKUP</button>
         </div>
 
         <!-- Filter Button -->
         <div class="filter-section">
-          <button id="showHideBtn" class="filter-btn">☑</button>
+          <button id="showHideBtn" class="filter-btn" title="Choose which columns to display">☑</button>
         </div>
 
 
@@ -177,11 +177,14 @@
           <button id="sortOrderBtn" class="sort-order-btn" data-order="asc">↑ Ascending</button>
         </div>
         <div class="export-buttons">
-          <button id="addEntryBtn" class="add-entry-btn">➕ Add</button>
-          <button id="editEntryBtn" class="edit-entry-btn" disabled = "true">✏️  Edit</button>
-          <button id="delEntryBtn" class="del-entry-btn" disabled = "true">🗑️  Delete</button>
-          <button id="exportPdfBtn" class="export-pdf-btn">📄 Export as PDF</button>
-          <button id="exportCsvBtn" class="export-csv-btn">📊 Export as CSV</button>
+          <button id="addEntryBtn" class="add-entry-btn" title="Add entry">➕ Add</button>
+          <button id="editEntryBtn" class="edit-entry-btn" disabled = "true" title="Edit entry">✏️  Edit</button>
+          <button id="delEntryBtn" class="del-entry-btn" disabled = "true" title="Delete entry">🗑️  Delete</button>
+          <span id="confirmDeletionSpan" class="confirm-deletion-span" style="display: none;"></span>
+          <button id="yesButton" class="confirm-deletion-btn" style="display: none;">Yes</button>
+          <button id="noButton" class="confirm-deletion-btn" style="display: none;">No</button>
+          <button id="exportPdfBtn" class="export-pdf-btn" title="Export selected entries to PDF">📄 PDF</button>
+          <button id="exportCsvBtn" class="export-csv-btn" title="Export selected entries to CSV">📊 CSV</button>
         </div>
       </div>
     </section>
@@ -204,8 +207,8 @@
         <h3>Show/Hide Columns</h3>
         <div id="column-options-grid" class="filter-grid"></div>
             <div class="filter-actions">
-          <button id="showAllColumns" class="apply-btn">Show All</button>
-          <button id="hideAllColumns" class="clear-btn">Hide All</button>
+          <button id="showAllColumns" class="apply-btn" title="Make all columns visible">Show All</button>
+          <button id="hideAllColumns" class="clear-btn"title="Make all columns hidden">Hide All</button>
         </div>
       </div>
     </section>
@@ -284,8 +287,8 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button id="saveEntry" class="save-btn">Save Entry</button>
-        <button id="cancelEntry" class="cancel-btn">Cancel</button>
+        <button id="saveEntry" class="save-btn" title="Save entry to database">Save Entry</button>
+        <button id="cancelEntry" class="cancel-btn" title="Cancel entry">Cancel</button>
       </div>
     </div>
   </div>
@@ -308,8 +311,8 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button id="saveImage" class="save-btn">Save Image</button>
-        <button id="cancelImage" class="cancel-btn">Cancel</button>
+        <button id="saveImage" class="save-btn" title="Save image">Save Image</button>
+        <button id="cancelImage" class="cancel-btn" title="Cancel image">Cancel</button>
       </div>
     </div>
   </div>

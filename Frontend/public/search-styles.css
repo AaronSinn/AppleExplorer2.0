@@ -187,6 +187,15 @@ main {
   outline: none;
 }
 
+.filterSelect {
+  width: 100%;
+  padding: 6px 25px 6px 10px;
+  border: 1px solid #333;
+  border-radius: 25px;
+  font-size: 16px;
+  outline: none;
+}
+
 .search-btn {
   position: absolute;
   right: 15px;
@@ -347,7 +356,8 @@ main {
 .export-csv-btn, 
 .add-entry-btn,
 .edit-entry-btn,
-.del-entry-btn {
+.del-entry-btn,
+.confirm-deletion-btn {
   padding: 10px 20px;
   border: none;
   border-radius: 4px;
@@ -358,6 +368,31 @@ main {
   display: flex;
   align-items: center;
   gap: 5px;
+}
+
+.confirm-deletion-span {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.confirm-deletion-btn {
+  background-color: white;
+  color:black;
+}
+
+#yesButton:hover {
+  background-color: #28a745;
+  
+}
+#noButton:hover {
+  background-color: #c82333;
 }
 
 .export-pdf-btn {
@@ -496,11 +531,16 @@ main {
 
 .table-view th,
 .table-view td {
-     white-space: nowrap;
+  white-space: nowrap;
   padding: 15px;  
   text-align: left;
   border-bottom: 1px solid #ddd;
   border-right: 1px solid #ddd;
+}
+
+.table-view th:not(:nth-child(1)):not(:nth-child(2)),
+.table-view td:not(:nth-child(1)):not(:nth-child(2)){
+  min-width: 150px;
 }
 
 .table-view th {
