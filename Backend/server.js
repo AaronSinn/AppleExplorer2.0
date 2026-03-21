@@ -34,6 +34,11 @@ app.use(express.json());
 // Serve images from the PMP folder
 app.use('/images', express.static(path.join(__dirname, '../public/PMP')));
 
+// Default route (redirects to index.html if this is called after express.static)
+app.get("/",(req, res) => {
+  res.redirect("/LoginPage.html");
+});
+
 // Serve frontend files
 app.use(express.static(path.join(__dirname, '../Frontend/public')));
 
@@ -137,11 +142,6 @@ function ensureReadOnly(req, res, next) {
 
 app.get("/dashboard", ensureAuth, ensureReadOnly, (req, res) => {
   res.send(`<h1>Welcome, ${req.user.displayName}</h1><p>You have read-only access.</p>`);
-});
-
-// Default route (redirects to index.html via express.static middleware)
-app.get("/", (req, res) => {
-  res.send("Apple Explorer API is live!");
 });
 
 // GET apples with filtering
