@@ -311,6 +311,9 @@ class AuthManager {
                     <button id="profile-btn" style="display: block; width: 100%; padding: 8px; border: none; background: none; text-align: left; cursor: pointer; border-radius: 4px;" onmouseover="this.style.backgroundColor='#f5f5f5'" onmouseout="this.style.backgroundColor='transparent'">
                         <i class="fa fa-user"></i> Profile Settings
                     </button>
+                    <button id="change-password-btn" style="display: block; width: 100%; padding: 8px; border: none; background: none; text-align: left; cursor: pointer; border-radius: 4px;" onmouseover="this.style.backgroundColor='#f5f5f5'" onmouseout="this.style.backgroundColor='transparent'">
+                        <i class="fa fa-key"></i> Change Password
+                    </button>
                     <button id="logout-btn" style="display: block; width: 100%; padding: 8px; border: none; background: none; text-align: left; cursor: pointer; color: #dc3545; border-radius: 4px;" onmouseover="this.style.backgroundColor='#f5f5f5'" onmouseout="this.style.backgroundColor='transparent'">
                         <i class="fa fa-sign-out"></i> Logout
                     </button>
@@ -322,6 +325,14 @@ class AuthManager {
                 const logoutBtn = dropdown.querySelector('#logout-btn');
                 if (logoutBtn) {
                     logoutBtn.addEventListener('click', () => this.logout());
+                }
+
+                const changePasswordBtn = dropdown.querySelector('#change-password-btn');
+                if (changePasswordBtn) {
+                    changePasswordBtn.addEventListener('click', () => {
+                        window.location.href = 'ForgotPassword.html';
+                        this.logout();
+                    });
                 }
 
                 const profileBtn = dropdown.querySelector('#profile-btn');
