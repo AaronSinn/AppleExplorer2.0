@@ -533,6 +533,10 @@ button:not(:disabled){
   border-collapse: collapse;
 }
 
+.selected-row {
+  background-color: #f8f9fa;
+}
+
 .table-view th,
 .table-view td {
   white-space: nowrap;

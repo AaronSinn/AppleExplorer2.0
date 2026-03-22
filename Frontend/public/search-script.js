@@ -625,14 +625,24 @@ class SearchListManager{
             this.filteredData.forEach(item => {
                 this.selectedItems.add(item)
             });
+            document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+                checkbox.checked = checked;
+            });
+            document.querySelectorAll('tr').forEach(row =>{
+                row.classList.add("selected-row");
+            })
         } else {
             this.selectedItems.clear();
+            document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            document.querySelectorAll('tr').forEach(row =>{
+                row.classList.remove("selected-row");
+            })
         }
         
         // Update individual checkboxes
-        document.querySelectorAll('.row-checkbox').forEach(checkbox => {
-            checkbox.checked = checked;
-        });
+
         
         this.toggleModifyEntryButtons(this.selectedItems.size);
     }
@@ -1090,16 +1100,42 @@ class SearchListManager{
         yesBtn.style.display = 'block';
         noBtn.style.display = 'block';
 
+        const addBtn = document.getElementById('addEntryBtn');
+        const editBtn = document.getElementById('editEntryBtn');
+        const delBtn = document.getElementById('delEntryBtn');
+        const pdfBtn = document.getElementById('exportPdfBtn');
+        const csvBtn = document.getElementById('exportCsvBtn');
+        const sortControls = document.getElementById('sortContainer');
+
+        addBtn.style.display = 'none';
+        editBtn.style.display = 'none';
+        delBtn.style.display = 'none';
+        pdfBtn.style.display = 'none';
+        csvBtn.style.display = 'none';
+        sortControls.style.display = 'none';
+
         yesBtn.addEventListener('click', (e) => {
             span.style.display = 'none';
             yesBtn.style.display = 'none';
             noBtn.style.display = 'none';
+            addBtn.style.display = 'block';
+            editBtn.style.display = 'block';
+            delBtn.style.display = 'block';
+            pdfBtn.style.display = 'block';
+            csvBtn.style.display = 'block';
+            sortControls.style.display = 'block';
             this.finishDeletion(item);
          });
         noBtn.onclick = () => {
             span.style.display = 'none';
             yesBtn.style.display = 'none';
             noBtn.style.display = 'none';
+            addBtn.style.display = 'block';
+            editBtn.style.display = 'block';
+            delBtn.style.display = 'block';
+            pdfBtn.style.display = 'block';
+            csvBtn.style.display = 'block';
+            sortControls.style.display = 'block';
         }
     }
 
@@ -1199,8 +1235,11 @@ class SearchListManager{
             checkbox.className = 'row-checkbox';
             checkbox.value = apple.id;
             checkbox.checked = this.selectedItems.has(apple);
+            if(checkbox.checked){
+                row.classList.add("selected-row");
+            }
             checkbox.addEventListener('change', (e) => {
-                this.handleRowSelection(apple, e.target.checked);
+                this.handleRowSelection(apple, e.target.checked, row);
             });
             checkboxCell.appendChild(checkbox);
 
@@ -1234,6 +1273,9 @@ class SearchListManager{
                 const newCell = row.insertCell();
                 newCell.textContent = this.getPropertyOfItem(apple,column);
             });
+        });
+        document.getElementById('selectAll').addEventListener('change', (e) => {
+            this.handleSelectAll(e.target.checked);
         });
     }
 
@@ -1485,8 +1527,8 @@ class SearchListManager{
             return;
         }
         const cbc = document.createElement('th');
-        cbc.classList.add('checkbox-column');
-        cbc.innerHTML = '<input type="checkbox" id="selectAll" title="Select All">';
+        /*cbc.classList.add('checkbox-column');
+        cbc.innerHTML = '<input type="checkbox" id="selectAll" title="Select All">';*/
         headerRow.appendChild(cbc);
         headerRow.appendChild(document.createElement('th'));
         this.columns.forEach((column) =>{this.initializeColumnFilter(column)});
@@ -1637,11 +1679,13 @@ class SearchListManager{
         this.renderData();
     }
 
-    handleRowSelection(item, checked) {
+    handleRowSelection(item, checked, row) {
         if (checked) {
             this.selectedItems.add(item);
+            row.classList.add("selected-row");
         } else {
             this.selectedItems.delete(item);
+            row.classList.remove("selected-row");
         }
         this.toggleModifyEntryButtons(this.selectedItems.size);
     }
