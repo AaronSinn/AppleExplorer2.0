@@ -361,13 +361,16 @@ main {
   padding: 10px 20px;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
   font-size: 14px;
   font-weight: bold;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 5px;
+}
+
+button:not(:disabled){
+  cursor:pointer;
 }
 
 .confirm-deletion-span {
@@ -400,7 +403,7 @@ main {
   color: white;
 }
 
-.export-pdf-btn:hover {
+.export-pdf-btn:hover:not(:disabled) {
   background-color: #c82333;
 }
 
@@ -409,7 +412,7 @@ main {
   color: white;
 }
 
-.export-csv-btn:hover {
+.export-csv-btn:hover:not(:disabled) {
   background-color: #218838;
 }
 

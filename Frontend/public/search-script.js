@@ -1650,10 +1650,15 @@ class SearchListManager{
         const addEntryBtn = document.getElementById('addEntryBtn');
         const editEntryBtn = document.getElementById('editEntryBtn');
         const deleteEntryBtn = document.getElementById('delEntryBtn');
+        const exportPDFBtn = document.getElementById('exportPdfBtn');
+        const exportCSVBtn = document.getElementById('exportCsvBtn');
 
         addEntryBtn.disabled = (size > 0 || this.userRole === 'Viewer');
         editEntryBtn.disabled = (size != 1 || this.userRole === 'Viewer');
         deleteEntryBtn.disabled = (size == 0 || this.userRole === 'Viewer');
+        exportPDFBtn.disabled = size == 0;
+        exportCSVBtn.disabled = size == 0;
+
     }
 
     filterData(query){
