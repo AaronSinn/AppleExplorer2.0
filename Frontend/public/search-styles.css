@@ -527,6 +527,7 @@ button:not(:disabled){
   background-color: white;
 }
 
+
 /* Table Styles */
 .table-view table {
   border-collapse: collapse;

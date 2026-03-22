@@ -527,7 +527,7 @@ class SearchListManager{
     }
 
     switchView(view){
-        this.currentView = view;
+        this.currentView = view;    
 
         // Update button states
         document.getElementById('listViewBtn').classList.toggle('active', view === 'list');
@@ -1198,7 +1198,7 @@ class SearchListManager{
             checkbox.type = 'checkbox';
             checkbox.className = 'row-checkbox';
             checkbox.value = apple.id;
-            //checkbox.checked = this.selectedItems.has(item.id);
+            checkbox.checked = this.selectedItems.has(apple);
             checkbox.addEventListener('change', (e) => {
                 this.handleRowSelection(apple, e.target.checked);
             });
