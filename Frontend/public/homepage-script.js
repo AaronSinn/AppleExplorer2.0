@@ -9,10 +9,10 @@ class TeamEditor {
     this.currentEditingMember = null;
 
     this.defaultTeamData = {
-      0: { name: 'Kevin Bui', title: 'Frontend', photo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team1-NSu6vBlCr3KcAhukFOpK4NCJruNo6T.png' },
-      1: { name: 'Maria Aguirre', title: 'Frontend', photo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team2-1bJqSZ6gIQpNqtZOO5TeiJX0rPqGKd.png' },
-      2: { name: 'Raad Islam', title: 'Backend/Frontend', photo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team3-k3us07lTf8vAsRJrvrYHPDariagfWI.png' },
-      3: { name: 'Aaron Sinn', title: 'Backend', photo: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/team5-FJZNJHmalCXdVxvI9Fl6l9J6u0pfWo.png' }
+      0: { name: 'Kevin Bui', title: 'Frontend', photo: '/images/team_kevin.png?v=3' },
+      1: { name: 'Maria Aguirre', title: 'Frontend', photo: '/images/team_maria.png?v=3' },
+      2: { name: 'Raad Islam', title: 'Backend/Frontend', photo: '/images/team_raad.png?v=3' },
+      3: { name: 'Aaron Sinn', title: 'Backend', photo: '/images/team_aaron.png?v=3' }
     };
 
     this.teamData = this.loadTeamFromStorage();
