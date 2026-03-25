@@ -89,7 +89,7 @@ const appleSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
-    narativeKeyword: {
+    narrativeKeyword: {
       type: String,
       trim: true
     },
@@ -97,7 +97,7 @@ const appleSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
-    fullNarative: {
+    fullNarrative: {
       type: String,
       trim: true
     },

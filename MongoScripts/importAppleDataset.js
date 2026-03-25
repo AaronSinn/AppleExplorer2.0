@@ -102,8 +102,8 @@ async function importData() {
         fullBloomDate: parseInt(row['FULL BLOOM DATE']) || null,
         fireblightRating: row['FIREBLIGHT RATING'] || null,
         taxon: row['TAXON'] || null,
-        narativeKeyword: row['NARATIVEKEYWORD'] || null,
-        fullNarative: row['FULL NARATIVE'] || null,
+        narrativeKeyword: row['NARRATIVEKEYWORD'] || null,
+        fullNarrative: row['FULL NARRATIVE'] || null,
         pedigreeDescription: row['PEDIGREE DESCRIPTION'] || null,
         availabilityStatus: row['AVAILABILITY STATUS '] || null,
         locationSelection : {

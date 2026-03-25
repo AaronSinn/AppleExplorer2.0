@@ -4,8 +4,8 @@ class SearchListManager{
             'accession','cultivarName','tasteNotes','notes', 'acno', 'prefix', 
             'family', 'habitat', 'inventoryType',
             'maintenancePolicy', 'plantType', 'isDistributable', 'firstBloomDate',
-            'fullBloomDate', 'fireblightRating', 'taxon', 'narativeKeyword',
-            'fullNarative', 'pedigreeDescription', 'availabilityStatus',
+            'fullBloomDate', 'fireblightRating', 'taxon', 'narrativeKeyword',
+            'fullNarrative', 'pedigreeDescription', 'availabilityStatus',
             'cooperator', 'IPR', 'labelName', 'levelOfImprovement',  
             'profile:genus','profile:species','profile:pedigree', 'profile:taxon', 
             'origin:country', 'origin:province', 'origin:city'

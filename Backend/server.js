@@ -206,8 +206,8 @@ app.get("/apples", async (req, res) => {
           tasteNotes: 1,
           notes: 1,
           habitat: 1,
-          narativeKeyword: 1,
-          fullNarative: 1,
+          narrativeKeyword: 1,
+          fullNarrative: 1,
           pedigreeDescription: 1,
 
           // Inventory / availability
