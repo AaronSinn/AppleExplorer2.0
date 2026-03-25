@@ -112,7 +112,6 @@
       <div class="controls-container">
         
         <!-- Search Bar -->
-
         <select name="search-by" id="search-by">
           <option value="none">All Fields</option>
         </select>
@@ -134,8 +133,6 @@
           <button id="pictureViewBtn" class="view-btn" title="Display database as images">Picture View</button>
         </div>
 
-
-
         <!-- Import/Export Buttons -->
         <div class="import-export">
           <button id="importBtn" class="import-btn" title="Import database from JSON file">RESTORE FROM BACKUP</button>
@@ -146,7 +143,6 @@
         <div class="filter-section">
           <button id="showHideBtn" class="filter-btn" title="Choose which columns to display">☑</button>
         </div>
-
 
       </div>
     </section>
@@ -165,12 +161,11 @@
         </div>
       </div>
     </section>
-    
 
     <!-- Export Controls -->
     <section id="exportControls" class="picture-export-controls">
       <div class="export-controls-container">
-        <div class="sort-controls" id = "sortContainer">
+        <div class="sort-controls" id="sortContainer">
           <label id="sortSelectLabel" for="sortSelect">Sort by:</label>
           <select id="sortSelect">
           </select>
@@ -178,13 +173,15 @@
         </div>
         <div class="export-buttons">
           <button id="addEntryBtn" class="add-entry-btn" title="Add entry">➕ Add</button>
-          <button id="editEntryBtn" class="edit-entry-btn" disabled = "true" title="Edit entry">✏️  Edit</button>
-          <button id="delEntryBtn" class="del-entry-btn" disabled = "true" title="Delete entry">🗑️  Delete</button>
+          <button id="editEntryBtn" class="edit-entry-btn" disabled="true" title="Edit entry">✏️  Edit</button>
+          <button id="delEntryBtn" class="del-entry-btn" disabled="true" title="Delete entry">🗑️  Delete</button>
           <span id="confirmDeletionSpan" class="confirm-deletion-span" style="display: none;"></span>
           <button id="yesButton" class="confirm-deletion-btn" style="display: none;">Yes</button>
           <button id="noButton" class="confirm-deletion-btn" style="display: none;">No</button>
-          <button id="exportPdfBtn" class="export-pdf-btn" disabled = "true" title="Export selected entries to PDF">📄 PDF</button>
-          <button id="exportCsvBtn" class="export-csv-btn" disabled = "true" title="Export selected entries to CSV">📊 CSV</button>
+          <button id="exportPdfBtn" class="export-pdf-btn" disabled="true" title="Export selected entries to PDF">📄 PDF</button>
+          <button id="exportCsvBtn" class="export-csv-btn" disabled="true" title="Export selected entries to CSV">📊 CSV</button>
+          <button id="massImageBtn" class="add-entry-btn" title="Upload images for multiple entries at once">🖼 Mass Upload</button>
+          <input type="file" id="massImageInput" accept="image/*" multiple style="display:none;">
         </div>
       </div>
     </section>
@@ -208,7 +205,7 @@
         <div id="column-options-grid" class="filter-grid"></div>
             <div class="filter-actions">
           <button id="showAllColumns" class="apply-btn" title="Make all columns visible">Show All</button>
-          <button id="hideAllColumns" class="clear-btn"title="Make all columns hidden">Hide All</button>
+          <button id="hideAllColumns" class="clear-btn" title="Make all columns hidden">Hide All</button>
         </div>
       </div>
     </section>
@@ -247,8 +244,6 @@
           </div>
         </div>
       </div>
-
-
     </section>
   </main>
 
@@ -304,6 +299,7 @@
         </div>
       </div>
       <div class="modal-footer">
+        <button id="deleteImage" style="display:none;">Delete Image</button>
         <button id="saveImage" class="save-btn" title="Save image">Save Image</button>
         <button id="cancelImage" class="cancel-btn" title="Cancel image">Cancel</button>
       </div>
