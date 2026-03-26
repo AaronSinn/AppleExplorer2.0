@@ -326,7 +326,7 @@ class AuthManager {
                 if (logoutBtn) {
                     logoutBtn.addEventListener('click', () => this.logout());
                 }
-
+                
                 const changePasswordBtn = dropdown.querySelector('#change-password-btn');
                 if (changePasswordBtn) {
                     changePasswordBtn.addEventListener('click', () => {
@@ -344,6 +344,21 @@ class AuthManager {
                         } 
                     });
                 }
+
+                const pathnames = window.location.pathname.split('/').filter(item => item !== '');
+                const currentPage = pathnames[0]; 
+                
+                /*
+                These buttons do not have their modals appear due to auth-gurad.js not being present
+                on homepage. Also some modal HTML might be missing?
+
+                This is a temporary fix.
+                */
+                if(currentPage == "homepage.html"){
+                    changePasswordBtn.style.display = "none";
+                    profileBtn.style.display = "none";
+                }
+
             }, 0);
         }
 
