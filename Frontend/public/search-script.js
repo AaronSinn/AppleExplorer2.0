@@ -1305,6 +1305,7 @@ class SearchListManager{
         const delBtn = document.getElementById('delEntryBtn');
         const pdfBtn = document.getElementById('exportPdfBtn');
         const csvBtn = document.getElementById('exportCsvBtn');
+        const imgBtn = document.getElementById('massImageBtn');
         const sortControls = document.getElementById('sortContainer');
 
         addBtn.style.display = 'none';
@@ -1312,6 +1313,7 @@ class SearchListManager{
         delBtn.style.display = 'none';
         pdfBtn.style.display = 'none';
         csvBtn.style.display = 'none';
+        imgBtn.style.display = 'none';
         sortControls.style.display = 'none';
 
         yesBtn.addEventListener('click', (e) => {
@@ -1323,6 +1325,7 @@ class SearchListManager{
             delBtn.style.display = 'block';
             pdfBtn.style.display = 'block';
             csvBtn.style.display = 'block';
+            imgBtn.style.display = 'block';
             sortControls.style.display = 'block';
             this.finishDeletion(item);
         });
@@ -1336,6 +1339,7 @@ class SearchListManager{
             pdfBtn.style.display = 'block';
             csvBtn.style.display = 'block';
             sortControls.style.display = 'block';
+            imgBtn.style.display = 'block';
         }
     }
 
