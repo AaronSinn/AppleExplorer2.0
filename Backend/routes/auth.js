@@ -61,6 +61,74 @@ const generateToken = (user) => {
   });
 };
 
+router.post('/change-password', async (req, res) => {
+  try {
+    const { email, oldPassword, newPassword } = req.body;
+    // Validation
+    if (!email || !oldPassword || !newPassword) {
+      console.log('❌ Validation failed: Missing required fields');
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Please provide email, old password, and new password'
+      });
+    }
+    
+    // Check password length
+    if (newPassword.length < 6) {
+      console.log('❌ Validation failed: Password too short');
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Password must be at least 6 characters long' 
+      });
+    }
+
+    // Find user
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid email or password' 
+      });
+    }
+
+    // Check old password
+    const isPasswordValid = await user.comparePassword(oldPassword);
+    if (!isPasswordValid) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid password' 
+      });
+    }
+
+    // Prevent reusing same password
+    const isSamePassword = await user.comparePassword(newPassword);
+    if (isSamePassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be different from old password'
+      });
+    }
+
+    // Update password
+    user.password = newPassword; // hashing occurs in pre-save hook
+    await user.save();
+
+    console.log('✅ Password updated successfully');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password updated successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Error changing password:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
 // Register route
 router.post('/register', async (req, res) => {
   try {
@@ -232,9 +300,9 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Attatch user data to session
-    req.session.visited = true; 
-    req.session.user = user;
+    // Attatch user data to session (sessions are not fully implemented in the project)
+    // req.session.visited = true; 
+    // req.session.user = user;
 
     // Store previous login time before updating
     const previousLogin = user.lastLogin;

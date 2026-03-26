@@ -7,6 +7,7 @@ class TeamEditor {
   constructor() {
     this.isEditMode = false;
     this.currentEditingMember = null;
+    this.authManager = window.authManager;
 
     this.defaultTeamData = {
       0: { name: 'Kevin Bui', title: 'Frontend', photo: '/images/team_kevin.png?v=3' },

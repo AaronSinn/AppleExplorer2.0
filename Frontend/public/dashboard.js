@@ -5,7 +5,7 @@ class DashboardManager {
     this.authManager = window.authManager;
     this.currentUser = this.authManager?.getUser() || {
       name: "Guest User",
-      role: "admin",
+      role: "Administrator",
       permissions: ["manage_users", "approve_tasks", "view_history", "manage_permissions"],
     }
 
@@ -257,7 +257,7 @@ class DashboardManager {
     const currentUser = this.authManager?.getUser();
     if (currentUser) {
       this.currentUser.name = currentUser.fullName || currentUser.name || "Guest User";
-      this.currentUser.role = currentUser.role || "admin";
+      this.currentUser.role = currentUser.role || "Administrator";
     }
 
     // Update welcome message
@@ -344,7 +344,13 @@ class DashboardManager {
   handleActionClick(action) {
     switch (action) {
       case "manage-permissions":
-        this.showManagePermissions()
+        console.log(this.currentUser.role);
+        if (this.currentUser.role == "Administrator"){
+          this.showManagePermissions();
+        }
+        else{
+          this.showPermissionDenied();
+        }
         break
       case "create-user":
         // Redirect to signup page
@@ -463,6 +469,39 @@ class DashboardManager {
 
       this.showModal("Manage Systems Permission", content);
     }
+  }
+
+  async showPermissionDenied() {
+    try {
+      const content = `
+        <div class="modal-form" id="permissionDeniedModal">
+          <div class="permission-denied-message">
+            <p><strong>Permission Denied</strong></p>
+            <p>You do not have the required permissions to access this feature.</p>
+            <p>This section is restricted to <strong>administrators only</strong>.</p>
+          </div>
+          <div style="margin-top: 20px; text-align: right;">
+            <button class="btn btn-primary" onclick="dashboard.closeModal()">
+              OK
+            </button>
+          </div>
+        </div>
+      `;
+
+      this.showModal("Permission Denied", content);
+
+    } catch (error) {
+      console.error('Error showing permission denied modal:', error);
+      this.showMessage('An unexpected error occurred.', 'error');
+    }
+  }
+
+  closeModal(){
+    const modal = document.getElementById('actionModal');
+  
+    if (!modal) return;
+    modal.style.display = 'none';
+    
   }
 
   showCreateUser() {

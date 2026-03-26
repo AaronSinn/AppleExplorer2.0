@@ -330,8 +330,7 @@ class AuthManager {
                 const changePasswordBtn = dropdown.querySelector('#change-password-btn');
                 if (changePasswordBtn) {
                     changePasswordBtn.addEventListener('click', () => {
-                        window.location.href = 'ForgotPassword.html';
-                        this.logout();
+                        window.authGuard.openChangePasswordModal();
                     });
                 }
 
@@ -342,9 +341,7 @@ class AuthManager {
                         // Use the auth guard's profile modal
                         if (window.authGuard) {
                             window.authGuard.openProfileModal();
-                        } else {
-                            alert('Profile settings functionality loading...');
-                        }
+                        } 
                     });
                 }
             }, 0);

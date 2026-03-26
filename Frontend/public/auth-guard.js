@@ -207,10 +207,102 @@ class AuthGuard {
                 profileBtn.removeEventListener('click', profileBtn._originalHandler);
                 profileBtn.addEventListener('click', () => this.openProfileModal());
             }
+            const changePasswordBtn = document.querySelector('#change-password-btn');
+            if(window.authManager.getUser().profileType == "Google"){
+                changePasswordBtn.style.opacity = "0.5";
+                changePasswordBtn.style.backgroundColor = "LightGrey";
+                changePasswordBtn.disabled;
+            }
+
+            if (changePasswordBtn) {
+                changePasswordBtn.removeEventListener('click', changePasswordBtn._originalHandler);
+                changePasswordBtn.addEventListener('click', () => this.openChangePasswordModal());
+            }
         }, 1000);
 
         // Create profile modal
         this.createProfileModal();
+        this.createChangePasswordModal()
+    }
+
+    createChangePasswordModal() {
+        // Remove existing modal if present
+        const existingModal = document.getElementById('change-password-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Create profile modal
+        const modal = document.createElement('div');
+        modal.id = 'change-password-modal';
+        modal.className = 'modal fade';
+        modal.style.cssText = `
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        `;
+
+         modal.innerHTML = `
+            <div class="modal-dialog" style="margin: 50px auto; width: 600px; max-width: 90%;">
+                <div class="modal-content" style="background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <div class="modal-header" style="padding: 20px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; color: #333;">Change Password</h3>
+                        <button id="close-change-password-modal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
+                    </div>
+                    <div class="modal-body" style="padding: 20px;">
+                        <form id="change-password-form">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group" style="margin-bottom: 15px;">
+                                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Current Password:</label>
+                                        <input name="password" type="password" id="current-password" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" minlength="6" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group" style="margin-bottom: 15px;">
+                                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">New Password:</label>
+                                        <input name="password" type="password" id="new-password" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" minlength="6" required>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 15px;">
+                                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Confirm Password:</label>
+                                        <input name="password" type="password" id="new-password2" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" minlength="6" required>
+                                    </div>
+                                </div>
+                                <p id="err-msg" style="color:red; font-style: italic; margin-top: 25px;"></p>
+                                <p id="success-msg" style="color:green; font-style: italic; margin-top: 25px;"></p>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer" style="padding: 20px; border-top: 1px solid #ddd; text-align: right;">
+                        <button type="button" id="cancel-password-modal" class="btn btn-secondary" style="padding: 8px 16px; margin-right: 10px; border: 1px solid #ccc; background: #f8f9fa; color: #333; border-radius: 4px; cursor: pointer;">Cancel</button>
+                        <button type="button" id="save-new-password" class="btn btn-primary" style="padding: 8px 16px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer;">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Add event listeners
+        const closeBtn = modal.querySelector('#close-change-password-modal')
+        const cancelBtn = modal.querySelector('#cancel-password-modal');
+        const saveBtn = modal.querySelector('#save-new-password');
+
+        closeBtn.addEventListener('click', () => this.closeChangePasswordModal());
+        cancelBtn.addEventListener('click', () => this.closeChangePasswordModal());
+        saveBtn.addEventListener('click', () => this.changePassword());
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeChangePasswordModal();
+            }
+        });
     }
 
     createProfileModal() {
@@ -330,6 +422,38 @@ class AuthGuard {
         }
     }
 
+    openChangePasswordModal() {
+        if (!window.authManager || !window.authManager.isAuthenticated()) {
+            this.redirectToLogin();
+            return;
+        }
+
+        if(window.authManager.getUser().profileType == "Google"){
+            alert("Google users cannot change passwords.");
+            return;
+        }
+
+        const modal = document.getElementById('change-password-modal');
+
+        // Populate form with current user data
+        modal.style.display = 'block';
+        
+        // Remove any previous messages
+        const errMsg = document.getElementById('err-msg');
+        const successMsg = document.getElementById('success-msg');
+        errMsg.innerHTML = "";
+        successMsg.innerHTML = "";
+        errMsg.style.display = "none";
+        successMsg.style.display = "none";
+        
+        // Close any existing dropdowns
+        const dropdown = document.getElementById('profile-dropdown');
+        if (dropdown) {
+            dropdown.style.display = 'none';
+        }
+        
+    }
+
     loadProfileData(user) {
         // Split full name into first and last name
         const nameParts = user.fullName ? user.fullName.split(' ') : ['', ''];
@@ -407,6 +531,81 @@ class AuthGuard {
         }
     }
 
+    async changePassword() {
+        const saveBtn = document.getElementById('save-new-password');
+        const originalText = saveBtn.textContent;
+        const errMsg = document.getElementById('err-msg');
+        const successMsg = document.getElementById('success-msg');
+        errMsg.innerHTML = "";
+        successMsg.innerHTML = "";
+        errMsg.style.display = "none";
+        successMsg.style.display = "none";
+        
+        try {
+            saveBtn.textContent = 'Saving...';
+            saveBtn.disabled = true;
+
+            // Get passwords
+            const oldPassword = document.getElementById('current-password').value.trim();
+            const newPassword = document.getElementById('new-password').value.trim();
+            const newPassword2 = document.getElementById('new-password2').value.trim();
+
+            const user = window.authManager.getUser();
+            const userEmail = user.email;
+            
+            const profileData = {
+                email: userEmail,
+                oldPassword: oldPassword,
+                newPassword: newPassword,
+            };
+            
+            // Ensure that the new password matches
+            if (newPassword !== newPassword2) {
+                errMsg.style.display = "block";
+                errMsg.innerHTML = "Passwords do not match";
+                throw new Error('New passwords do not match');
+            }
+
+            if (newPassword.length < 6){
+                errMsg.style.display = "block";
+                errMsg.innerHTML = "Password must be at least 6 characters long";
+                throw new Error('New password must be at least 6 characters long');
+            }
+
+            const response = await fetch('/api/auth/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${window.authManager.getToken()}`
+                },
+                body: JSON.stringify(profileData)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                errMsg.style.display = "block";
+                errMsg.innerHTML = "Current password is not correct";
+                throw new Error(data.message || 'Failed to change password');
+            }
+            
+            successMsg.style.display = "block";
+            successMsg.innerHTML = "Password changed successfully"
+
+            // Close modal after 1.5 seconds
+            setTimeout(() => {
+                this.closeProfileModal();
+            }, 1500);
+
+        } catch (error) {
+            console.error('Password change error:', error);
+            this.showProfileMessage(error.message || 'Failed to change password', 'error');
+        } finally {
+            saveBtn.textContent = originalText;
+            saveBtn.disabled = false;
+        }
+    }
+
     showProfileMessage(message, type = 'success') {
         const messageDiv = document.getElementById('profile-message');
         if (messageDiv) {
@@ -425,6 +624,23 @@ class AuthGuard {
 
     closeProfileModal() {
         const modal = document.getElementById('profile-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    closeChangePasswordModal(){
+        const currentPassword = document.getElementById('current-password');
+        const newPassword = document.getElementById('new-password');
+        const newPassword2 = document.getElementById('new-password2');
+        
+        // Empty input values
+        currentPassword.value = "";
+        newPassword.value = "";
+        newPassword2.value = "";
+        
+        // Close change password modal
+        const modal = document.getElementById('change-password-modal');
         if (modal) {
             modal.style.display = 'none';
         }
