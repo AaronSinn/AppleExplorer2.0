@@ -14,6 +14,9 @@ module.exports = function (passport) {
         let existingUser;
         try{
           existingUser = await users.findOne({ googleId: profile.id });
+          if(!existingUser){
+            existingUser = await users.findOne({ email: profile._json.email, });
+          }
         } catch (err) {
           return done(err, null);
         }
