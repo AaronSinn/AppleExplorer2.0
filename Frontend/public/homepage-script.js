@@ -22,6 +22,14 @@ class TeamEditor {
       ? window.authManager.hasPermission('edit')
       : false;
 
+    // Make sure non-admins cant go to user page
+    const userLink = document.getElementById('user-link');
+    if(!this.canEdit){
+      userLink.style.opacity = "0.5";
+      userLink.style.pointerEvents = 'none';
+      userLink.title = 'Insufficient permissions';
+    }
+
     this.init();
     this.updateTeamDisplay();
   }
@@ -51,6 +59,8 @@ class TeamEditor {
     // Close modal on "x"
     const modalClose = document.querySelector('#editModal .close');
     if (modalClose) modalClose.addEventListener('click', () => this.closeModal());
+
+    
   }
 
   loadTeamFromStorage() {
