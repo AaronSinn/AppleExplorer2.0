@@ -326,7 +326,8 @@ class UserManagementSystem {
       roleCell.textContent = user.role;
 
       // Create Permission
-      const createCell = row.insertCell();
+      const createCell = row.insertCell(); 
+      createCell.style.cursor = "not-allowed";
       createCell.innerHTML = `
         <input type="checkbox" 
                class="permission-checkbox" 
@@ -338,6 +339,7 @@ class UserManagementSystem {
 
       // Upload Permission
       const uploadCell = row.insertCell();
+      uploadCell.style.cursor = "not-allowed";
       uploadCell.innerHTML = `
         <input type="checkbox" 
                class="permission-checkbox" 
@@ -349,6 +351,7 @@ class UserManagementSystem {
 
       // Update Permission
       const updateCell = row.insertCell();
+      updateCell.style.cursor = "not-allowed";
       updateCell.innerHTML = `
         <input type="checkbox" 
                class="permission-checkbox" 
@@ -360,6 +363,7 @@ class UserManagementSystem {
 
       // Admin Permission
       const adminCell = row.insertCell();
+      updateCell.style.cursor = "not-allowed";
       adminCell.innerHTML = `
         <input type="checkbox" 
                class="permission-checkbox" 
@@ -383,10 +387,12 @@ class UserManagementSystem {
 
     // Bind permission change events
     document.querySelectorAll('.permission-checkbox').forEach(checkbox => {
-      checkbox.addEventListener('change', (e) => {
-        this.handlePermissionChange(e);
-      });
+      checkbox.style.pointerEvents = 'none';
+      // checkbox.addEventListener('change', (e) => {
+      //   this.handlePermissionChange(e);
+      // });
     });
+    
 
     // Bind delete button events
     document.querySelectorAll('.delete-user-btn').forEach(button => {
@@ -661,7 +667,7 @@ class UserManagementSystem {
           notification.parentNode.removeChild(notification);
         }
       }, 300);
-    }, 4000);
+    }, 8000);
   }
 }
 
